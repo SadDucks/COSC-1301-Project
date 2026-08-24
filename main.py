@@ -5,7 +5,7 @@ import sys;
 from PySide6 import QtWidgets;
 
 #The games windows Manager
-import Scenes.windowManager as windowManager;\
+import Scenes.windowManager as windowManager;
 from Scenes import menu as menu;
 
 #Opening Application

@@ -10,9 +10,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(scene());
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 
+class changeWindow:
+    def __init__(self, window):
+        self.window = window;
 
     def changeTitle(self, new_title):
-        self.setWindowTitle(new_title);
+        self.window.setWindowTitle(new_title);
 
     def changeScene(self, new_scene):
-        self.setCentralWidget(new_scene());
+        self.window.setCentralWidget(new_scene());
