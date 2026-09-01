@@ -13,6 +13,7 @@ class Config:
                 self.configData = json.load(file);
         else:
             self.configData = {
+                "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
                 "volume": 50,
                 "fullscreen": False,
                 "resolution": "800x600"
@@ -46,6 +47,7 @@ class Config:
 
     def resetConfig(self):
         self.configData = {
+            "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
             "volume": 50,
             "fullscreen": False,
             "resolution": "800x600"
