@@ -7,7 +7,9 @@ class mainMenu(QtWidgets.QWidget):
         super().__init__();
         self.config = config;
         self.audioOutput = QtMultimedia.QAudioOutput(self)
-        self.audioOutput.setVolume(self.config.getVolume() / 100.0)
+        self.mediaPlayer = QtMultimedia.QMediaPlayer(self)
+        self.mediaPlayer.setAudioOutput(self.audioOutput)
+        self.audioOutput.setVolume(self.config.getVolume() / 100.0 if self.config else 0.5)
 
         #Game Title
         title = QtWidgets.QLabel("COSC 1301 Group Project");
@@ -148,6 +150,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
     def save(self):
         if self.audioOutput and self.config:
             self.config.setVolume(round(self.audioOutput.volume() * 100));
+            self.audioOutput.setVolume(self.config.getVolume() / 100.0);
         self.close();
 
     def reset(self):
