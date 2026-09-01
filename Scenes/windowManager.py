@@ -3,11 +3,11 @@ from PySide6 import QtGui
 
 
 class mainWindow(QtWidgets.QMainWindow):
-    def __init__(self, name, scene):
+    def __init__(self, name, scene, config=None):
         super().__init__();
         self.setWindowTitle(name);
         self.setGeometry(100, 100, 800, 600); 
-        self.setCentralWidget(scene());
+        self.setCentralWidget(scene(config));
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 
 class changeWindow:

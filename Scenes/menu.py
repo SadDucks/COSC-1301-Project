@@ -2,12 +2,12 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtMultimedia
 
-
 class mainMenu(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config=None):
+        super().__init__();
+        self.config = config;
         self.audioOutput = QtMultimedia.QAudioOutput(self)
-        self.audioOutput.setVolume(0.5)
+        self.audioOutput.setVolume(self.config.getVolume() / 100.0)
 
         #Game Title
         title = QtWidgets.QLabel("COSC 1301 Group Project");
@@ -53,7 +53,7 @@ class mainMenu(QtWidgets.QWidget):
         pass
 
     def openSettings(self):
-        self.settingsOverlay = settingsOverlayMenu(self, self.audioOutput);
+        self.settingsOverlay = settingsOverlayMenu(self, self.audioOutput, self.config);
         self.settingsOverlay.setGeometry(self.rect());
         self.settingsOverlay.raise_();
         self.settingsOverlay.show();
@@ -68,8 +68,11 @@ class mainMenu(QtWidgets.QWidget):
             self.settingsOverlay.setGeometry(self.rect());
 
 class settingsOverlayMenu(QtWidgets.QWidget):
-    def __init__(self, parent=None, audio_output=None):
+    def __init__(self, parent=None, audio_output=None, config=None):
         super().__init__(parent);
+
+        self.config = config;
+
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground, True);
         self.audioOutput = audio_output;
         self.setStyleSheet("background-color: rgba(0, 0, 0, 120);");
@@ -85,20 +88,20 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         title.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignHCenter);
 
         #Volume Slider
-        volumeSlider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal);
+        self.volumeSlider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal);
 
         #Configuration for Volume Slider
-        volumeSlider.setObjectName("Volume");
-        volumeSlider.setToolTip("Adjust the volume");
-        volumeSlider.setRange(0, 100);
-        volumeSlider.setValue(round(self.audioOutput.volume() * 100) if self.audioOutput else 50);
-        volumeSlider.valueChanged.connect(self.volume);
+        self.volumeSlider.setObjectName("Volume");
+        self.volumeSlider.setToolTip("Adjust the volume");
+        self.volumeSlider.setRange(0, 100);
+        self.volumeSlider.setValue(round(self.audioOutput.volume() * 100) if self.audioOutput else (config.getVolume() if config else 50));
+        self.volumeSlider.valueChanged.connect(self.volume);
 
        #Label for the volume slider
         volumeSliderTitleText = QtWidgets.QLabel("Volume");
         volumeSliderTitleText.setStyleSheet("font-size: 12px;");
 
-        self.volumeSliderPercentText = QtWidgets.QLabel(str(volumeSlider.value()) + "%");
+        self.volumeSliderPercentText = QtWidgets.QLabel(str(self.volumeSlider.value()) + "%");
         self.volumeSliderPercentText.setStyleSheet("font-size: 12px;");
 
         #Layout for the volume slider and its label
@@ -106,18 +109,30 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         volumeLayout.addWidget(volumeSliderTitleText, 0, QtCore.Qt.AlignmentFlag.AlignVCenter);
         volumeLayout.addWidget(self.volumeSliderPercentText, 0, QtCore.Qt.AlignmentFlag.AlignVCenter);
         volumeLayout.addStretch();
-        volumeLayout.addWidget(volumeSlider);
+        volumeLayout.addWidget(self.volumeSlider);
 
-        #Close Button
+        #Reset, Save, Close Button
+        reset = QtWidgets.QPushButton("Reset");
+        reset.clicked.connect(self.reset);
+
+        save = QtWidgets.QPushButton("Save");
+        save.clicked.connect(self.save);
+
         close = QtWidgets.QPushButton("Close");
         close.clicked.connect(self.close);
+
+        footerLayout = QtWidgets.QHBoxLayout();
+        footerLayout.addWidget(save);
+        footerLayout.addWidget(reset);
+        footerLayout.addStretch();
+        footerLayout.addWidget(close);
 
         #creates a separate panel
         settingsPanelLayout = QtWidgets.QVBoxLayout(settingsBackgroundPanel);
         settingsPanelLayout.addWidget(title);
 
         settingsPanelLayout.addLayout(volumeLayout);
-        settingsPanelLayout.addWidget(close);
+        settingsPanelLayout.addLayout(footerLayout);
 
         #creates the overlay and sets it as the Layout
         overlayLayout = QtWidgets.QVBoxLayout(self);
@@ -129,6 +144,18 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         self.volumeSliderPercentText.setText(str(level) + "%");
         if self.audioOutput:
             self.audioOutput.setVolume(level / 100.0);
+
+    def save(self):
+        if self.audioOutput and self.config:
+            self.config.setVolume(round(self.audioOutput.volume() * 100));
+        self.close();
+
+    def reset(self):
+        if self.config:
+            self.config.resetConfig();
+            # Update slider to show reset value
+            self.volumeSlider.setValue(self.config.getVolume());
+            self.volumeSliderPercentText.setText(str(self.config.getVolume()) + "%");
 
 class pauseMenu(QtWidgets.QWidget):
     def __init__(self, parent=None):
