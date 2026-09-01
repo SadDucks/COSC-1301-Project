@@ -106,8 +106,10 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         self.volumeSliderPercentText = QtWidgets.QLabel(str(self.volumeSlider.value()) + "%");
         self.volumeSliderPercentText.setStyleSheet("font-size: 12px;");
 
-        #Layout for the volume slider and its label
+        #Layout for the volume slider
         volumeLayout = QtWidgets.QHBoxLayout();
+        volumeLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop);
+        
         volumeLayout.addWidget(volumeSliderTitleText, 0, QtCore.Qt.AlignmentFlag.AlignVCenter);
         volumeLayout.addWidget(self.volumeSliderPercentText, 0, QtCore.Qt.AlignmentFlag.AlignVCenter);
         volumeLayout.addStretch();
