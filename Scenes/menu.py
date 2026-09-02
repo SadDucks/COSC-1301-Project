@@ -144,17 +144,26 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         overlayLayout.addWidget(settingsBackgroundPanel, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
         self.setLayout(overlayLayout);
 
+    # Volume function to update the volume slider and the audio output volume
     def volume(self, level):
         self.volumeSliderPercentText.setText(str(level) + "%");
         if self.audioOutput:
             self.audioOutput.setVolume(level / 100.0);
 
+    # Close function to close the settings overlay and save the volume setting
+    def close(self):
+        self.audioOutput.setVolume(self.config.getVolume() / 100.0);
+
+        super().close();
+
+    # Save function to save the volume setting to the configuration file
     def save(self):
         if self.audioOutput and self.config:
             self.config.setVolume(round(self.audioOutput.volume() * 100));
             self.audioOutput.setVolume(self.config.getVolume() / 100.0);
         self.close();
 
+    # Reset function to reset the volume setting to the default value
     def reset(self):
         if self.config:
             self.config.resetConfig();
