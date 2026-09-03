@@ -1,5 +1,6 @@
-from PySide6 import QtWidgets
-from PySide6 import QtGui
+from PySide6 import QtWidgets;
+from PySide6 import QtGui;
+from PySide6 import QtCore;
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -8,13 +9,22 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Setting Resolution from config
         self.config = config;
-        resolution = self.config.getResolution();
-        width = int(resolution.split("x")[0]);
-        height = int(resolution.split("x")[1]);
-        del resolution;
+
+        match self.config.getDisplayMode():
+            case "Fullscreen":
+                self.showFullScreen();
+            case "Windowed":
+                self.showNormal();
+                resolution = self.config.getResolution();
+                width = int(resolution.split("x")[0]);
+                height = int(resolution.split("x")[1]);
+                self.setGeometry(100, 100, width, height);
+                del resolution;
+            case "Borderless Windowed":
+                self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint);
+                self.showMaximized();
         
         self.setWindowTitle(name);
-        self.setGeometry(100, 100, width, height);
         self.setCentralWidget(scene(config));
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 

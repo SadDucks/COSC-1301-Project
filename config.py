@@ -15,7 +15,7 @@ class Config:
             self.configData = {
                 "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
                 "volume": 50,
-                "fullscreen": False,
+                "displayMode": "Windowed",
                 "resolution": "800x600"
             };
             self.saveConfig();
@@ -34,9 +34,12 @@ class Config:
     def isFullscreen(self):
         return self.configData.get("fullscreen", False);
 
-    def setFullscreen(self, fullscreen):
-        self.configData["fullscreen"] = fullscreen;
+    def setDisplayMode(self, displayMode):
+        self.configData["display_mode"] = displayMode;
         self.saveConfig();
+
+    def getDisplayMode(self):
+        return self.configData.get("display_mode", "Windowed");
 
     def getResolution(self):
         return self.configData.get("resolution", "1920x1080");

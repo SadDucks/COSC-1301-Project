@@ -10,7 +10,6 @@ class mainMenu(QtWidgets.QWidget):
         self.mediaPlayer = QtMultimedia.QMediaPlayer(self);
         self.mediaPlayer.setAudioOutput(self.audioOutput);
         self.audioOutput.setVolume(self.config.getVolume() / 100.0);
-        
 
         #Game Title
         title = QtWidgets.QLabel("COSC 1301 Group Project");
@@ -116,6 +115,29 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         volumeLayout.addStretch();
         volumeLayout.addWidget(self.volumeSlider);
 
+        # Display Mode Settings
+
+        # Label for the display mode dropdown
+        self.displayModeLabel = QtWidgets.QLabel("Display Mode");
+        self.displayModeLabel.setStyleSheet("font-size: 12px;");
+
+        # Dropdown for selecting display mode
+        self.displayModeDropdown = QtWidgets.QComboBox();
+        self.displayModeDropdown.setObjectName("displayMode");
+
+        self.displayModeDropdown.addItem("Windowed");
+        self.displayModeDropdown.addItem("Fullscreen");
+        self.displayModeDropdown.addItem("Borderless Windowed");
+
+        self.displayModeDropdown.setCurrentText(self.config.getDisplayMode());
+        self.displayModeDropdown.currentTextChanged.connect(lambda text: self.displayMode(self.displayModeDropdown.currentText()));
+
+        # Layout for the display mode settings
+        self.displayModeLayout = QtWidgets.QHBoxLayout();
+        self.displayModeLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop);
+        self.displayModeLayout.addWidget(self.displayModeLabel);
+        self.displayModeLayout.addWidget(self.displayModeDropdown);
+
         # Resolution Settings
 
         #Label for the resolution dropdown
@@ -162,6 +184,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
 
         settingsPanelLayout.addLayout(volumeLayout);
         settingsPanelLayout.addLayout(resolutionLayout);
+        settingsPanelLayout.addLayout(self.displayModeLayout);
         settingsPanelLayout.addLayout(footerLayout);
 
         #creates the overlay and sets it as the Layout
@@ -176,9 +199,26 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         if self.audioOutput:
             self.audioOutput.setVolume(level / 100.0);
 
-    def resolution(self, configResolution):
-        width, height = map(int, configResolution.split("x"));
-        self.window().resize(width, height);
+    def resolution(self, resolution):
+        if self.config.getDisplayMode() == "Windowed":
+            width, height = map(int, resolution.split("x"));
+            self.window().resize(width, height);
+
+    def displayMode(self, displayMode):
+        self.config.setDisplayMode(displayMode);
+
+        match displayMode:
+            case "Fullscreen":
+                self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
+                self.window().showFullScreen();
+            case "Windowed":
+                self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
+                self.window().showNormal();
+                self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
+                self.resolution(self.config.getResolution());
+            case "Borderless Windowed":
+                self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint);
+                self.window().showMaximized();
 
     # Close function to close the settings overlay and save the volume setting
     def close(self):
@@ -195,6 +235,10 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         if self.resolutionDropdown and self.config:
             self.config.setResolution(self.resolutionDropdown.currentText());
             self.resolution(self.resolutionDropdown.currentText());
+
+        if self.displayModeDropdown and self.config:
+            self.config.setDisplayMode(self.displayModeDropdown.currentText());
+            self.displayModeDropdown.setCurrentText(self.config.getDisplayMode());
         
         self.close();
 
