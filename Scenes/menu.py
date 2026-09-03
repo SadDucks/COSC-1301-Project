@@ -223,8 +223,12 @@ class settingsOverlayMenu(QtWidgets.QWidget):
                 self.resolutionDropdown.setCurrentText("1920x1080");
                 self.window().showFullScreen();
             case "Windowed":
-                self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
+                # Return normal window properties and size to the window
+                self.window().setWindowFlags(self.window().windowFlags() & ~QtCore.Qt.WindowType.FramelessWindowHint);
+                self.window().setWindowState(QtCore.Qt.WindowState.WindowNoState);
                 self.window().showNormal();
+                self.window().show();
+
                 self.resolutionDropdown.setEnabled(True);
                 self.resolutionDropdown.setCurrentText(self.config.getResolution());
                 self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
@@ -247,14 +251,12 @@ class settingsOverlayMenu(QtWidgets.QWidget):
             self.config.setVolume(round(self.audioOutput.volume() * 100));
             self.audioOutput.setVolume(self.config.getVolume() / 100.0);
 
-        if self.config.getDisplayMode() == "Windowed":
+        if self.displayModeDropdown.currentText() == "Windowed":
             if self.resolutionDropdown and self.config:
                 self.config.setResolution(self.resolutionDropdown.currentText());
 
-
-        if self.displayModeDropdown and self.config:
-            self.config.setDisplayMode(self.displayModeDropdown.currentText());
-            self.displayModeDropdown.setCurrentText(self.config.getDisplayMode());
+        self.config.setDisplayMode(self.displayModeDropdown.currentText());
+        self.displayMode(self.config.getDisplayMode());
         
         self.close();
 
@@ -266,12 +268,16 @@ class settingsOverlayMenu(QtWidgets.QWidget):
             self.volumeSlider.setValue(self.config.getVolume());
             self.volumeSliderPercentText.setText(str(self.config.getVolume()) + "%");
 
-            # Update Resolution to show reset value
-            self.resolutionDropdown.setCurrentText(self.config.getResolution());
-            self.resolution(self.config.getResolution());
-
+            # Update Resolution & Display Mode to show reset value
+            self.displayModeDropdown.blockSignals(True);
             self.displayModeDropdown.setCurrentText(self.config.getDisplayMode());
+            self.displayModeDropdown.blockSignals(False);
+
+            self.resolutionDropdown.setCurrentText(self.config.getResolution());
             self.displayMode(self.config.getDisplayMode());
+
+            self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
+
 
 class pauseMenu(QtWidgets.QWidget):
     def __init__(self, parent=None):
