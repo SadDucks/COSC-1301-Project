@@ -153,8 +153,13 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         self.resolutionDropdown.addItem("1280x720");
         self.resolutionDropdown.addItem("1920x1080");
 
-        self.resolutionDropdown.setCurrentText(self.config.getResolution());
-        self.resolutionDropdown.currentTextChanged.connect(lambda text: self.resolution(self.resolutionDropdown.currentText()));
+        if self.config.getDisplayMode() == "Windowed":
+            self.resolutionDropdown.setEnabled(True);
+            self.resolutionDropdown.setCurrentText(self.config.getResolution());
+            self.resolutionDropdown.currentTextChanged.connect(lambda text: self.resolution(self.resolutionDropdown.currentText()));
+        else:
+            self.resolutionDropdown.setEnabled(False);
+            self.resolutionDropdown.setCurrentText("1920x1080");
 
         # Layout for the resolution settings
         resolutionLayout = QtWidgets.QHBoxLayout();
@@ -210,14 +215,20 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         match displayMode:
             case "Fullscreen":
                 self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
+                self.resolutionDropdown.setEnabled(False);
+                self.resolutionDropdown.setCurrentText("1920x1080");
                 self.window().showFullScreen();
             case "Windowed":
                 self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
                 self.window().showNormal();
+                self.resolutionDropdown.setEnabled(True);
+                self.resolutionDropdown.setCurrentText(self.config.getResolution());
                 self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
                 self.resolution(self.config.getResolution());
             case "Borderless Windowed":
                 self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint);
+                self.resolutionDropdown.setEnabled(False);
+                self.resolutionDropdown.setCurrentText("1920x1080");
                 self.window().showMaximized();
 
     # Close function to close the settings overlay and save the volume setting
@@ -232,9 +243,10 @@ class settingsOverlayMenu(QtWidgets.QWidget):
             self.config.setVolume(round(self.audioOutput.volume() * 100));
             self.audioOutput.setVolume(self.config.getVolume() / 100.0);
 
-        if self.resolutionDropdown and self.config:
-            self.config.setResolution(self.resolutionDropdown.currentText());
-            self.resolution(self.resolutionDropdown.currentText());
+        if self.config.getDisplayMode() == "Windowed":
+            if self.resolutionDropdown and self.config:
+                self.config.setResolution(self.resolutionDropdown.currentText());
+
 
         if self.displayModeDropdown and self.config:
             self.config.setDisplayMode(self.displayModeDropdown.currentText());
@@ -253,6 +265,9 @@ class settingsOverlayMenu(QtWidgets.QWidget):
             # Update Resolution to show reset value
             self.resolutionDropdown.setCurrentText(self.config.getResolution());
             self.resolution(self.config.getResolution());
+
+            self.displayModeDropdown.setCurrentText(self.config.getDisplayMode());
+            self.displayMode(self.config.getDisplayMode());
 
 class pauseMenu(QtWidgets.QWidget):
     def __init__(self, parent=None):
