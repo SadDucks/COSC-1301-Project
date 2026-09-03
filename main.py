@@ -3,7 +3,7 @@ import sys;
 import setproctitle;
 
 #Graphical Interface
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets;
 
 #Configuration
 setproctitle.setproctitle("COSC 1301 Project");
