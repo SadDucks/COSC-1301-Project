@@ -6,10 +6,11 @@ class mainMenu(QtWidgets.QWidget):
     def __init__(self, config=None):
         super().__init__();
         self.config = config;
-        self.audioOutput = QtMultimedia.QAudioOutput(self)
-        self.mediaPlayer = QtMultimedia.QMediaPlayer(self)
-        self.mediaPlayer.setAudioOutput(self.audioOutput)
-        self.audioOutput.setVolume(self.config.getVolume() / 100.0 if self.config else 0.5)
+        self.audioOutput = QtMultimedia.QAudioOutput(self);
+        self.mediaPlayer = QtMultimedia.QMediaPlayer(self);
+        self.mediaPlayer.setAudioOutput(self.audioOutput);
+        self.audioOutput.setVolume(self.config.getVolume() / 100.0);
+        
 
         #Game Title
         title = QtWidgets.QLabel("COSC 1301 Group Project");
@@ -96,7 +97,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         self.volumeSlider.setObjectName("Volume");
         self.volumeSlider.setToolTip("Adjust the volume");
         self.volumeSlider.setRange(0, 100);
-        self.volumeSlider.setValue(round(self.audioOutput.volume() * 100) if self.audioOutput else (config.getVolume() if config else 50));
+        self.volumeSlider.setValue(round(self.audioOutput.volume() * 100) if self.audioOutput else (config.getVolume()));
         self.volumeSlider.valueChanged.connect(self.volume);
 
        #Label for the volume slider
@@ -114,6 +115,30 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         volumeLayout.addWidget(self.volumeSliderPercentText, 0, QtCore.Qt.AlignmentFlag.AlignVCenter);
         volumeLayout.addStretch();
         volumeLayout.addWidget(self.volumeSlider);
+
+        # Resolution Settings
+
+        #Label for the resolution dropdown
+        self.resolutionLabel = QtWidgets.QLabel("Resolution");
+        self.resolutionLabel.setStyleSheet("font-size: 12px;");
+
+        # Dropdown for selecting resolution
+        self.resolutionDropdown = QtWidgets.QComboBox();
+        self.resolutionDropdown.setObjectName("Resolution");
+
+        self.resolutionDropdown.addItem("800x600");
+        self.resolutionDropdown.addItem("1024x768");
+        self.resolutionDropdown.addItem("1280x720");
+        self.resolutionDropdown.addItem("1920x1080");
+
+        self.resolutionDropdown.setCurrentText(self.config.getResolution());
+        self.resolutionDropdown.currentTextChanged.connect(lambda text: self.resolution(self.resolutionDropdown.currentText()));
+
+        # Layout for the resolution settings
+        resolutionLayout = QtWidgets.QHBoxLayout();
+        resolutionLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop);
+        resolutionLayout.addWidget(self.resolutionLabel);
+        resolutionLayout.addWidget(self.resolutionDropdown);
 
         #Reset, Save, Close Button
         reset = QtWidgets.QPushButton("Reset");
@@ -136,6 +161,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         settingsPanelLayout.addWidget(title);
 
         settingsPanelLayout.addLayout(volumeLayout);
+        settingsPanelLayout.addLayout(resolutionLayout);
         settingsPanelLayout.addLayout(footerLayout);
 
         #creates the overlay and sets it as the Layout
@@ -150,6 +176,10 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         if self.audioOutput:
             self.audioOutput.setVolume(level / 100.0);
 
+    def resolution(self, configResolution):
+        width, height = map(int, configResolution.split("x"));
+        self.window().resize(width, height);
+
     # Close function to close the settings overlay and save the volume setting
     def close(self):
         self.audioOutput.setVolume(self.config.getVolume() / 100.0);
@@ -161,6 +191,11 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         if self.audioOutput and self.config:
             self.config.setVolume(round(self.audioOutput.volume() * 100));
             self.audioOutput.setVolume(self.config.getVolume() / 100.0);
+
+        if self.resolutionDropdown and self.config:
+            self.config.setResolution(self.resolutionDropdown.currentText());
+            self.resolution(self.resolutionDropdown.currentText());
+        
         self.close();
 
     # Reset function to reset the volume setting to the default value
@@ -170,6 +205,10 @@ class settingsOverlayMenu(QtWidgets.QWidget):
             # Update slider to show reset value
             self.volumeSlider.setValue(self.config.getVolume());
             self.volumeSliderPercentText.setText(str(self.config.getVolume()) + "%");
+
+            # Update Resolution to show reset value
+            self.resolutionDropdown.setCurrentText(self.config.getResolution());
+            self.resolution(self.config.getResolution());
 
 class pauseMenu(QtWidgets.QWidget):
     def __init__(self, parent=None):
