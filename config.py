@@ -39,7 +39,7 @@ class Config:
         self.saveConfig();
 
     def getDisplayMode(self):
-        return self.configData.get("display_mode", "Windowed");
+        return self.configData.get("displayMode", "Windowed");
 
     def getResolution(self):
         return self.configData.get("resolution", "1920x1080");
@@ -52,7 +52,7 @@ class Config:
         self.configData = {
             "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
             "volume": 50,
-            "fullscreen": False,
-            "resolution": "800x600"
+            "resolution": "800x600",
+            "displayMode": "Windowed"
         }
         self.saveConfig();
