@@ -1,6 +1,6 @@
 {
     "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
-    "volume": 50,
+    "volume": 100,
     "displayMode": "Windowed",
     "resolution": "800x600"
 }

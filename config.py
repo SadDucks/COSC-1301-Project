@@ -35,7 +35,7 @@ class Config:
         return self.configData.get("fullscreen", False);
 
     def setDisplayMode(self, displayMode):
-        self.configData["display_mode"] = displayMode;
+        self.configData["displayMode"] = displayMode;
         self.saveConfig();
 
     def getDisplayMode(self):

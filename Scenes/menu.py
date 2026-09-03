@@ -10,6 +10,10 @@ class mainMenu(QtWidgets.QWidget):
         self.mediaPlayer = QtMultimedia.QMediaPlayer(self);
         self.mediaPlayer.setAudioOutput(self.audioOutput);
         self.audioOutput.setVolume(self.config.getVolume() / 100.0);
+        
+        self.mediaPlayer.setSource(QtCore.QUrl.fromLocalFile("Testing Files/test_audio.mp3"));
+        self.mediaPlayer.setLoops(QtMultimedia.QMediaPlayer.Loops.Infinite);
+        self.mediaPlayer.play();
 
         #Game Title
         title = QtWidgets.QLabel("COSC 1301 Group Project");
