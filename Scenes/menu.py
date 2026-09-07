@@ -2,6 +2,7 @@ from PySide6 import QtCore;
 from PySide6 import QtWidgets;
 from PySide6 import QtMultimedia;
 from PySide6 import QtGui;
+import re;
 
 class mainMenu(QtWidgets.QWidget):
 
@@ -31,19 +32,19 @@ class mainMenu(QtWidgets.QWidget):
         title.show();
 
         #Play Button
-        play = AnimatedButton("Play");
+        play = AnimatedButton("Play", buttonStyle);
         play.setObjectName("play");
         play.clicked.connect(self.startGame);
         play.show();
 
         #Settings Button
-        settings = AnimatedButton("Settings");
+        settings = AnimatedButton("Settings", buttonStyle);
         settings.setObjectName("settings");
         settings.clicked.connect(self.openSettings);
         settings.show();
 
         #Quit Button
-        quit = AnimatedButton("Quit");
+        quit = AnimatedButton("Quit", buttonStyle);
         quit.setObjectName("quit");
         quit.clicked.connect(self.quitGame);
         quit.show();
@@ -85,10 +86,16 @@ class mainMenu(QtWidgets.QWidget):
 class AnimatedButton(QtWidgets.QPushButton):
     colorChanged = QtCore.Signal(QtGui.QColor)
 
-    def __init__(self, text):
+    def __init__(self, text, style_sheet=None):
         super().__init__(text)
 
-        self._color = QtGui.QColor("#0e5135")
+        if style_sheet is None:
+            with open("CSS/button.css", "r") as file:
+                style_sheet = file.read()
+
+        self._color = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton"))
+        self._normalColor = QtGui.QColor(self._color)
+        self._hoverColor = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton:hover"))
         self._buttonPadding = "15px 32px"
         self._buttonFontSize = "16px"
         self._buttonRadius = "8px"
@@ -100,6 +107,23 @@ class AnimatedButton(QtWidgets.QPushButton):
         )
 
         self.updateButtonStyle()
+
+    @staticmethod
+    def _getStyleColor(style_sheet, selector):
+        selector_pattern = rf"{re.escape(selector)}\s*\{{(.*?)\}}"
+        selector_match = re.search(selector_pattern, style_sheet, re.DOTALL)
+        if selector_match is None:
+            raise ValueError(f"Missing {selector} selector in button stylesheet")
+
+        color_match = re.search(
+            r"background-color\s*:\s*([^;]+)",
+            selector_match.group(1),
+            re.IGNORECASE,
+        )
+        if color_match is None:
+            raise ValueError(f"Missing background-color in {selector} selector")
+
+        return color_match.group(1).strip()
 
     @QtCore.Property(QtGui.QColor, notify=colorChanged)
     def buttonColor(self):
@@ -139,11 +163,11 @@ class AnimatedButton(QtWidgets.QPushButton):
         self.animation.start()
 
     def enterEvent(self, event):
-        self.animateTo("#d4ce46")
+        self.animateTo(self._hoverColor)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
-        self.animateTo("#0e5135")
+        self.animateTo(self._normalColor)
         super().leaveEvent(event)
 
 class settingsOverlayMenu(QtWidgets.QWidget):
