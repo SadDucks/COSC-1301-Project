@@ -9,3 +9,7 @@ QPushButton {
     margin: 4px 2px;
     border-radius: 8px; /* Rounded corners */
 }
+
+QPushButton:hover {
+    background-color: #d4ce46;
+}

@@ -1,6 +1,7 @@
 from PySide6 import QtCore;
 from PySide6 import QtWidgets;
 from PySide6 import QtMultimedia;
+from PySide6 import QtGui;
 
 class mainMenu(QtWidgets.QWidget):
 
@@ -30,19 +31,19 @@ class mainMenu(QtWidgets.QWidget):
         title.show();
 
         #Play Button
-        play = QtWidgets.QPushButton("Play");
+        play = AnimatedButton("Play");
         play.setObjectName("play");
         play.clicked.connect(self.startGame);
         play.show();
 
         #Settings Button
-        settings = QtWidgets.QPushButton("Settings");
+        settings = AnimatedButton("Settings");
         settings.setObjectName("settings");
         settings.clicked.connect(self.openSettings);
         settings.show();
 
         #Quit Button
-        quit = QtWidgets.QPushButton("Quit");
+        quit = AnimatedButton("Quit");
         quit.setObjectName("quit");
         quit.clicked.connect(self.quitGame);
         quit.show();
@@ -79,6 +80,71 @@ class mainMenu(QtWidgets.QWidget):
         super().resizeEvent(event);
         if hasattr(self, 'settingsOverlay'):
             self.settingsOverlay.setGeometry(self.rect());
+
+#Animate Buttons
+class AnimatedButton(QtWidgets.QPushButton):
+    colorChanged = QtCore.Signal(QtGui.QColor)
+
+    def __init__(self, text):
+        super().__init__(text)
+
+        self._color = QtGui.QColor("#0e5135")
+        self._buttonPadding = "15px 32px"
+        self._buttonFontSize = "16px"
+        self._buttonRadius = "8px"
+
+        self.animation = QtCore.QPropertyAnimation(self, b"buttonColor")
+        self.animation.setDuration(500)
+        self.animation.setEasingCurve(
+            QtCore.QEasingCurve.Type.InOutQuad
+        )
+
+        self.updateButtonStyle()
+
+    @QtCore.Property(QtGui.QColor, notify=colorChanged)
+    def buttonColor(self):
+        return self._color
+
+    @buttonColor.setter
+    def buttonColor(self, color):
+        if self._color == color:
+            return
+
+        self._color = color
+        self.updateButtonStyle()
+        self.colorChanged.emit(color)
+
+    def updateButtonStyle(self):
+        self.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self._color.name()};
+                border: none;
+                color: white;
+                padding: {self._buttonPadding};
+                font-size: {self._buttonFontSize};
+                border-radius: {self._buttonRadius};
+            }}
+        """)
+
+    def setButtonStyle(self, padding, font_size, radius):
+        self._buttonPadding = padding
+        self._buttonFontSize = font_size
+        self._buttonRadius = radius
+        self.updateButtonStyle()
+
+    def animateTo(self, color):
+        self.animation.stop()
+        self.animation.setStartValue(self._color)
+        self.animation.setEndValue(QtGui.QColor(color))
+        self.animation.start()
+
+    def enterEvent(self, event):
+        self.animateTo("#d4ce46")
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.animateTo("#0e5135")
+        super().leaveEvent(event)
 
 class settingsOverlayMenu(QtWidgets.QWidget):
     def __init__(self, parent=None, audio_output=None, config=None):
@@ -179,35 +245,17 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         resolutionLayout.addWidget(self.resolutionDropdown);
 
         #Reset, Save, Close Button
-        reset = QtWidgets.QPushButton("Reset");
+        reset = AnimatedButton("Reset");
         reset.clicked.connect(self.reset);
-        reset.setStyleSheet("""
-            background-color: #0e5135;
-            font-size: 12px; 
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 15px;""");
+        reset.setButtonStyle("10px 15px", "12px", "4px");
 
-        save = QtWidgets.QPushButton("Save");
+        save = AnimatedButton("Save");
         save.clicked.connect(self.save);
-        save.setStyleSheet("""
-            background-color: #0e5135;
-            font-size: 12px; 
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 15px;""");
+        save.setButtonStyle("10px 15px", "12px", "4px");
 
-        close = QtWidgets.QPushButton("Close");
+        close = AnimatedButton("Close");
         close.clicked.connect(self.close);
-        close.setStyleSheet("""
-            background-color: #0e5135;
-            font-size: 12px; 
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 15px;""");
+        close.setButtonStyle("10px 15px", "12px", "4px");
 
         footerLayout = QtWidgets.QHBoxLayout();
         footerLayout.addWidget(save);
