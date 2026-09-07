@@ -3,9 +3,16 @@ from PySide6 import QtWidgets;
 from PySide6 import QtMultimedia;
 
 class mainMenu(QtWidgets.QWidget):
+
+    buttonCSS = "CSS/button.css";
+
     def __init__(self, config=None):
         super().__init__();
         self.config = config;
+        with open(self.buttonCSS, "r") as file:
+            buttonStyle = file.read();
+            self.setStyleSheet(buttonStyle);
+
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.mediaPlayer = QtMultimedia.QMediaPlayer(self);
         self.mediaPlayer.setAudioOutput(self.audioOutput);
@@ -174,12 +181,33 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         #Reset, Save, Close Button
         reset = QtWidgets.QPushButton("Reset");
         reset.clicked.connect(self.reset);
+        reset.setStyleSheet("""
+            background-color: #0e5135;
+            font-size: 12px; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;""");
 
         save = QtWidgets.QPushButton("Save");
         save.clicked.connect(self.save);
+        save.setStyleSheet("""
+            background-color: #0e5135;
+            font-size: 12px; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;""");
 
         close = QtWidgets.QPushButton("Close");
         close.clicked.connect(self.close);
+        close.setStyleSheet("""
+            background-color: #0e5135;
+            font-size: 12px; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;""");
 
         footerLayout = QtWidgets.QHBoxLayout();
         footerLayout.addWidget(save);
