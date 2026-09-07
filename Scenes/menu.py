@@ -6,12 +6,13 @@ import re;
 
 class mainMenu(QtWidgets.QWidget):
 
-    buttonCSS = "CSS/button.css";
+    mainMenuStyle = "CSS/mainMenuStyle.css";
 
     def __init__(self, config=None):
         super().__init__();
         self.config = config;
-        with open(self.buttonCSS, "r") as file:
+
+        with open(self.mainMenuStyle, "r") as file:
             buttonStyle = file.read();
             self.setStyleSheet(buttonStyle);
 
@@ -90,7 +91,7 @@ class AnimatedButton(QtWidgets.QPushButton):
         super().__init__(text)
 
         if style_sheet is None:
-            with open("CSS/button.css", "r") as file:
+            with open("CSS/mainMenuStyle.css", "r") as file:
                 style_sheet = file.read()
 
         self._color = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton"))
