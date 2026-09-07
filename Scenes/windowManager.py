@@ -28,6 +28,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(scene(config));
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 
+        self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
+
+
 class changeWindow:
     def __init__(self, window):
         self.window = window;
