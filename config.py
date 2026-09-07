@@ -52,7 +52,7 @@ class Config:
         self.configData = {
             "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
             "volume": 50,
-            "resolution": "800x600",
-            "displayMode": "Windowed"
+            "displayMode": "Windowed",
+            "resolution": "800x600"
         }
         self.saveConfig();
