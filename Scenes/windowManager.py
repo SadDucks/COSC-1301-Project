@@ -1,14 +1,35 @@
-from PySide6 import QtWidgets
-from PySide6 import QtGui
+from PySide6 import QtWidgets;
+from PySide6 import QtGui;
+from PySide6 import QtCore;
 
 
 class mainWindow(QtWidgets.QMainWindow):
-    def __init__(self, name, scene):
+    def __init__(self, name, scene, config=None):
         super().__init__();
+
+        # Setting Resolution from config
+        self.config = config;
+
+        match self.config.getDisplayMode():
+            case "Fullscreen":
+                self.showFullScreen();
+            case "Windowed":
+                self.showNormal();
+                resolution = self.config.getResolution();
+                width = int(resolution.split("x")[0]);
+                height = int(resolution.split("x")[1]);
+                self.setGeometry(100, 100, width, height);
+                del resolution;
+            case "Borderless Windowed":
+                self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint);
+                self.showMaximized();
+        
         self.setWindowTitle(name);
-        self.setGeometry(100, 100, 800, 600); 
-        self.setCentralWidget(scene());
+        self.setCentralWidget(scene(config));
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
+
+        self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
+
 
 class changeWindow:
     def __init__(self, window):
@@ -19,3 +40,7 @@ class changeWindow:
 
     def changeScene(self, new_scene):
         self.window.setCentralWidget(new_scene());
+
+    def changeResolution(self, new_resolution):
+        width, height = map(int, new_resolution.split("x"));
+        self.window.setGeometry(100, 100, width, height);
