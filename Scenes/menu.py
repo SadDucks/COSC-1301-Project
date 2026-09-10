@@ -102,7 +102,7 @@ class AnimatedButton(QtWidgets.QPushButton):
         self._buttonRadius = "8px"
 
         self.animation = QtCore.QPropertyAnimation(self, b"buttonColor")
-        self.animation.setDuration(500)
+        self.animation.setDuration(300)
         self.animation.setEasingCurve(
             QtCore.QEasingCurve.Type.InOutQuad
         )
