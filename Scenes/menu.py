@@ -15,12 +15,15 @@ class mainMenu(QtWidgets.QWidget):
         super().__init__();
         self.config = config;
 
+        #Adding changewindow class from windowManager
         self.windowRef = windowRef;
 
+        # Setting style sheet
         with open(self.mainMenuStyle, "r") as file:
             buttonStyle = file.read();
             self.setStyleSheet(buttonStyle);
 
+        #Audio and video
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.mediaPlayer = QtMultimedia.QMediaPlayer(self);
         self.mediaPlayer.setAudioOutput(self.audioOutput);
@@ -178,6 +181,7 @@ class AnimatedButton(QtWidgets.QPushButton):
         self.animateTo(self._normalColor)
         super().leaveEvent(event)
 
+#Settings Menu Class
 class settingsOverlayMenu(QtWidgets.QWidget):
     def __init__(self, parent=None, audio_output=None, config=None):
         super().__init__(parent);
