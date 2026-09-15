@@ -22,3 +22,8 @@ class supportCard(card):
         super().__init__(id, name, image)
         self.healing = healing
         self.energy = energy
+
+
+class prizeCard(card):
+    def __init__(self, id, name, image):
+        super().__init__(id, name, image)

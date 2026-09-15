@@ -7,8 +7,12 @@ with open("items/attack.json", "r") as attack:
 with open("items/support.json", "r") as support:
     supportCards = json.load(support)
 
+with open("items/prize.json", "r") as prize:
+    prizeCards = json.load(prize)
+
 attackCardList = []
 supportCardList = []
+prizeCardList = []
 
 for card in attackCards:
     newCard = cards.attackCard(
@@ -31,3 +35,10 @@ for card in supportCards:
     )
     supportCardList.append(newCard)
 
+for card in prizeCards:
+    newCard = cards.prizeCard(
+        card["id"],
+        card["name"],
+        card["image"]
+    )
+    prizeCardList.append(newCard)
