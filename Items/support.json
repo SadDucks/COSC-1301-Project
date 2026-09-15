@@ -1,6 +1,3 @@
 [
-    { "id": 1, "name": "Gannondorf", "hp": 50, "attack": 15, "image": "filepath"},
-    { "id": 2, "name": "Link", "hp": 50, "attack": 15},
-    { "id": 3, "name": "Zelda", "hp": 25, "attack": 20},
-    { "id": 4, "name": "Calamo", "hp": 10, "attack": 5}
+    { "id": 1, "name": "healthPotion", "heal": 50, "stamina": 0, "image": "filepath"}
 ]
