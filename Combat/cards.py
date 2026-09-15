@@ -18,8 +18,7 @@ class attackCard(card):
 
 
 class supportCard(card):
-    def __init__(self, id, name, image, damage, healing, energy):
+    def __init__(self, id, name, image, healing, energy):
         super().__init__(id, name, image)
-        self.damage = damage
         self.healing = healing
         self.energy = energy

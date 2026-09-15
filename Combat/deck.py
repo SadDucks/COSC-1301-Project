@@ -11,6 +11,9 @@ class deck:
         for card in card_list.attackCardList:
             self.addCard(card)
 
+        for card in card_list.supportCardList:
+            self.addCard(card)
+
     # Adds cards to deck
     def addCard(self, card):
         self.cards.append(card)
