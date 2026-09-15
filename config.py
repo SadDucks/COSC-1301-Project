@@ -16,7 +16,7 @@ class Config:
                 "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
                 "volume": 50,
                 "displayMode": "Windowed",
-                "resolution": "800x600"
+                "resolution": "960x540"
             };
             self.saveConfig();
 
@@ -53,6 +53,6 @@ class Config:
             "comment": "Configuration file for the application. Do not edit manually unless you know what you're doing.",
             "volume": 50,
             "displayMode": "Windowed",
-            "resolution": "800x600"
+            "resolution": "960x540"
         }
         self.saveConfig();

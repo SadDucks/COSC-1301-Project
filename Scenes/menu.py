@@ -257,9 +257,9 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         self.resolutionDropdown = QtWidgets.QComboBox();
         self.resolutionDropdown.setObjectName("Resolution");
 
-        self.resolutionDropdown.addItem("800x600");
-        self.resolutionDropdown.addItem("1024x768");
+        self.resolutionDropdown.addItem("960x540");
         self.resolutionDropdown.addItem("1280x720");
+        self.resolutionDropdown.addItem("1600x900");
         self.resolutionDropdown.addItem("1920x1080");
 
         if self.config.getDisplayMode() == "Windowed":
