@@ -4,13 +4,18 @@ from PySide6 import QtMultimedia;
 from PySide6 import QtGui;
 import re;
 
+import Scenes.windowManager as windowManager;
+from Scenes import play as play;
+
 class mainMenu(QtWidgets.QWidget):
 
     mainMenuStyle = "CSS/mainMenuStyle.css";
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, windowRef=None):
         super().__init__();
         self.config = config;
+
+        self.windowRef = windowRef;
 
         with open(self.mainMenuStyle, "r") as file:
             buttonStyle = file.read();
@@ -65,8 +70,10 @@ class mainMenu(QtWidgets.QWidget):
 
     #Button Functionality
     def startGame(self):
-        #Placeholder for starting the game
-        pass
+        if self.windowRef is not None:
+            self.windowRef.changeScene(play.gameplayScene);
+        else:
+            print("No change window found");
 
     def openSettings(self):
         self.settingsOverlay = settingsOverlayMenu(self, self.audioOutput, self.config);

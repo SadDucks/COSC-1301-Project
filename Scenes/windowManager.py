@@ -9,6 +9,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Setting Resolution from config
         self.config = config;
+        self.changeWindowHelper = changeWindow(self);
 
         match self.config.getDisplayMode():
             case "Fullscreen":
@@ -25,7 +26,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.showMaximized();
         
         self.setWindowTitle(name);
-        self.setCentralWidget(scene(config));
+        self.setCentralWidget(scene(config, self.changeWindowHelper));
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 
         self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
