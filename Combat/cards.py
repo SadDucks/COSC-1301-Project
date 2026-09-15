@@ -1,6 +1,7 @@
 class card:
     # Creates the basic information for every card
-    def __init__(self, name, image):
+    def __init__(self, id, name, image):
+        self.id = id
         self.name = name
         self.image = image
 
@@ -8,8 +9,8 @@ class card:
         return self.name
 
 class attackCard(card):
-    def __init__(self, name, image, damage, energyCost, health):
-        super().__init__(name, image)
+    def __init__(self, id, name, image, damage, energyCost, health):
+        super().__init__(id, name, image)
         self.damage = damage
         self.energy = energyCost
         self.health = health
@@ -17,8 +18,8 @@ class attackCard(card):
 
 
 class supportCard(card):
-    def __init__(self, name, image, damage, healing, energy):
-        super().__init__(name, image)
+    def __init__(self, id, name, image, damage, healing, energy):
+        super().__init__(id, name, image)
         self.damage = damage
         self.healing = healing
         self.energy = energy

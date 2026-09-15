@@ -8,14 +8,8 @@ class deck:
     def __init__(self):
         self.cards = []
 
-        self.addCard(card_list.Link)
-        self.addCard(card_list.Gannondorf)
-        self.addCard(card_list.Zelda)
-        self.addCard(card_list.Calamo)
-
-        self.addCard(card_list.healing_potion)
-        self.addCard(card_list.energy_potion)
-
+        for card in card_list.attackCardList:
+            self.addCard(card)
 
     # Adds cards to deck
     def addCard(self, card):
