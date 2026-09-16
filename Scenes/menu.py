@@ -366,7 +366,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
     # Close function to close the settings overlay and save the volume setting
     def close(self):
         self.audioOutput.setVolume(self.config.getVolume() / 100.0);
-        self().settingStatus = False;
+        self.parent().settingStatus = False;
 
         super().close();
 
