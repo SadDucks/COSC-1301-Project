@@ -14,6 +14,7 @@ class mainMenu(QtWidgets.QWidget):
     def __init__(self, config=None, windowRef=None):
         super().__init__();
         self.config = config;
+        self.settingStatus = False;
 
         #Adding changewindow class from windowManager
         self.windowRef = windowRef;
@@ -78,11 +79,22 @@ class mainMenu(QtWidgets.QWidget):
         else:
             print("No change window found");
 
+    #Settings button functionality
     def openSettings(self):
         self.settingsOverlay = settingsOverlayMenu(self, self.audioOutput, self.config);
+        self.settingStatus = True;
         self.settingsOverlay.setGeometry(self.rect());
         self.settingsOverlay.raise_();
         self.settingsOverlay.show();
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key.Key_Escape:
+            if self.settingStatus == True:
+                self.settingsOverlay.close();
+            else:
+                self.openSettings();
+        else:
+            super().keyPressEvent(event);
 
     #Quit function
     def quitGame(self):
@@ -354,6 +366,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
     # Close function to close the settings overlay and save the volume setting
     def close(self):
         self.audioOutput.setVolume(self.config.getVolume() / 100.0);
+        self().settingStatus = False;
 
         super().close();
 

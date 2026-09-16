@@ -2,6 +2,8 @@ from PySide6 import QtWidgets;
 from PySide6 import QtGui;
 from PySide6 import QtCore;
 
+from Scenes.menu import settingsOverlayMenu;
+
 
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, name, scene, config=None):
