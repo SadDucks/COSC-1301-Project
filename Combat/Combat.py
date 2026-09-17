@@ -1,3 +1,11 @@
-from PySide6 import QtCore
-from PySide6 import QtWidgets
-from PySide6 import QtMultimedia
+def attack(attacker, defender):
+    damage = attacker.attack
+    defender.currentHealth -= damage
+
+    return damage
+
+def heal(card, amount):
+    card.currentHealth += amount
+
+    if card.currentHealth > card.health:
+        card.currentHealth = card.health

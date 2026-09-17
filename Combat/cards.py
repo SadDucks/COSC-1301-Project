@@ -9,9 +9,9 @@ class card:
         return self.name
 
 class attackCard(card):
-    def __init__(self, id, name, image, damage, energyCost, health):
+    def __init__(self, id, name, image, attack, energyCost, health):
         super().__init__(id, name, image)
-        self.damage = damage
+        self.attack = attack
         self.energy = energyCost
         self.health = health
         self.currentHealth = health
