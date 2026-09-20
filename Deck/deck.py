@@ -1,6 +1,5 @@
 import random
-import cards as cards
-import card_list
+from Deck import card_list
 
 
 class deck:

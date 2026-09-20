@@ -1,6 +1,11 @@
-import player
-import cards as cards
-from deck import deck
+import sys
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from Player import player
+from Deck.deck import deck
 
 class game:
     def __init__(self, numberOfPlayers):

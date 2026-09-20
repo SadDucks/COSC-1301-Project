@@ -1,4 +1,4 @@
-import cards as cards
+from Deck import cards
 import json
 
 with open("items/attack.json", "r") as attack:

@@ -1,4 +1,5 @@
-from deck import deck, hand
+from Deck.deck import hand;
+
 
 
 class player:
