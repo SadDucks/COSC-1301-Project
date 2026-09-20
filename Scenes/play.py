@@ -21,10 +21,25 @@ class gameplayScene(QtWidgets.QWidget):
 
         #Creating player layout
         self.background = QtGui.QPixmap("Assets/gamePlayScene/background.jpeg");
-        self.playerLayout = QtWidgets.QHBoxLayout();
-        self.playerLayout.addLayout(playArea().player1());
+        self.playAreas = playArea();
+        self.playerLayout = QtWidgets.QGridLayout();
+
+        self.playerLayout.addLayout(self.playAreas.player2(), 0, 1);
+        self.playerLayout.addLayout(self.playAreas.player3(), 1, 0);
+        self.playerLayout.addLayout(self.playAreas.player4(), 1, 2);
+        self.playerLayout.addLayout(self.playAreas.player1(), 2, 1);
+
+        self.playerLayout.setColumnStretch(0, 1);
+        self.playerLayout.setColumnStretch(1, 1);
+        self.playerLayout.setColumnStretch(2, 1);
+        
+        self.playerLayout.setRowStretch(0, 1);
+        self.playerLayout.setRowStretch(1, 1);
+        self.playerLayout.setRowStretch(2, 1);
 
         self.setLayout(self.playerLayout)
+        self.playAreas.resize(self.size());
+
 
     #Settings
 
@@ -52,6 +67,8 @@ class gameplayScene(QtWidgets.QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event);
+        self.playAreas.resize(self.size());
+
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
 
@@ -67,16 +84,57 @@ class gameplayScene(QtWidgets.QWidget):
 
 class playArea:
 
+    def __init__(self):
+        self.playerFrames = [];
+
+    def createFrame(self, width, height):
+        rect = QtWidgets.QFrame();
+        rect.setStyleSheet("background-color: white; border: 2px solid black;");
+        self.playerFrames.append((rect, width, height));
+        return rect;
+
+    def resize(self, size):
+        scale = min(size.width() / 960, size.height() / 540);
+        for rect, width, height in self.playerFrames:
+            rect.setFixedSize(
+                max(1, round(width * scale)),
+                max(1, round(height * scale))
+            );
+
     #P1 area
     def player1(self):
         player1Area = QtWidgets.QHBoxLayout();
-        rect = QtWidgets.QFrame();
-        rect.setFixedSize(600, 100);
-        rect.setStyleSheet("background-color: white; border: 2px solid black;");
+        rect = self.createFrame(600, 100);
 
         player1Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom);
         player1Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
 
         return player1Area;
-                
+
+    def player2(self):
+        player2Area = QtWidgets.QHBoxLayout();
+        rect = self.createFrame(600, 100);
+
+        player2Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop);
+        player2Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
+
+        return player2Area;
+
+    def player3(self):
+        player3Area = QtWidgets.QHBoxLayout();
+        rect = self.createFrame(100, 300);
+
+        player3Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft);
+        player3Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
+
+        return player3Area;
+
+    def player4(self):
+        player4Area = QtWidgets.QHBoxLayout();
+        rect = self.createFrame(100, 300);
+
+        player4Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight);
+        player4Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
+
+        return player4Area;
 
