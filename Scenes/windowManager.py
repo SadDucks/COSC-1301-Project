@@ -42,7 +42,9 @@ class changeWindow:
         self.window.setWindowTitle(new_title);
 
     def changeScene(self, new_scene):
-        self.window.setCentralWidget(new_scene());
+        scene = new_scene(self.window.config, self);
+        self.window.setCentralWidget(scene);
+        scene.setFocus();
 
     def changeResolution(self, new_resolution):
         width, height = map(int, new_resolution.split("x"));
