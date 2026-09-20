@@ -3,6 +3,8 @@ from PySide6 import QtGui;
 from PySide6 import QtMultimedia;
 from PySide6 import QtWidgets;
 
+
+
 class gameplayScene(QtWidgets.QWidget):
 
     def __init__(self, config = None, windowRef = None):
@@ -17,7 +19,12 @@ class gameplayScene(QtWidgets.QWidget):
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.audioOutput.setVolume(self.config.getVolume() / 100);
 
+        #Creating player layout
         self.background = QtGui.QPixmap("Assets/gamePlayScene/background.jpeg");
+        self.playerLayout = QtWidgets.QHBoxLayout();
+        self.playerLayout.addLayout(playArea().player1());
+
+        self.setLayout(self.playerLayout)
 
     #Settings
 
@@ -57,4 +64,19 @@ class gameplayScene(QtWidgets.QWidget):
             QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
             QtCore.Qt.TransformationMode.SmoothTransformation
         ));
-        
+
+class playArea:
+
+    #P1 area
+    def player1(self):
+        player1Area = QtWidgets.QHBoxLayout();
+        rect = QtWidgets.QFrame();
+        rect.setFixedSize(600, 100);
+        rect.setStyleSheet("background-color: white; border: 2px solid black;");
+
+        player1Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom);
+        player1Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
+
+        return player1Area;
+                
+
