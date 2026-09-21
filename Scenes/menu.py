@@ -5,7 +5,7 @@ from PySide6 import QtGui;
 import re;
 
 import Scenes.windowManager as windowManager;
-from Scenes import play as play;
+from Scenes.Gameplay import play as play;
 
 class mainMenu(QtWidgets.QWidget):
 
