@@ -348,7 +348,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
                 self.window().showFullScreen();
             case "Windowed":
                 # Return normal window properties and size to the window
-                self.window().setWindowFlags(self.window().windowFlags() & ~QtCore.Qt.WindowType.FramelessWindowHint);
+                self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
                 self.window().setWindowState(QtCore.Qt.WindowState.WindowNoState);
                 self.window().showNormal();
                 self.window().show();
