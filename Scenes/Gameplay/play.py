@@ -94,7 +94,7 @@ class playArea:
 
     def createFrame(self, width, height):
         rect = QtWidgets.QFrame();
-        rect.setStyleSheet("background-color: white; border: 2px solid black;");
+        rect.setStyleSheet("background-color: #026012; border: 3px solid black;");
         self.playerFrames.append((rect, width, height));
         return rect;
 
