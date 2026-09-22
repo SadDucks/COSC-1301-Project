@@ -9,8 +9,9 @@ from Deck.deck import deck
 
 class game:
     def __init__(self, numberOfPlayers):
-        self.players = []
+        self.players = [] # List of Players
         self.deck = deck()
+        self.round = 1 # Round Number
 
         for i in range(numberOfPlayers):
             newPlayer = player.player(f"Player {i + 1}")
@@ -25,7 +26,27 @@ class game:
                 card = self.deck.drawCard()
                 player.hand.addCard(card)
 
-myGame = game(3)
+    def nextTurn(self):
+        currentPlayerTurn = self.players.index(self.currentPlayer) # Current Turn
+
+        nextPlayerTurn = (currentPlayerTurn + 1) % len(self.players) # Next players turn, repeats after last player
+
+        if self.currentPlayer.attacked: # Adds energy after each turn
+            self.currentPlayer.energy += 8
+            self.currentPlayer.attacked = False
+        else:
+            self.currentPlayer.energy += 3
+
+        if currentPlayerTurn == len(self.players) - 1:  # Increases round number after last player
+            self.round += 1
+
+        print(self.currentPlayer.name)
+        print(self.currentPlayer.energy)
+        
+        self.currentPlayer = self.players[nextPlayerTurn] # Changes to next player
+
+
+myGame = game(4)
 
 print("Number of players:", len(myGame.players))
 
@@ -37,3 +58,11 @@ for player in myGame.players:
     print(player.name)
     print("Hand: ", [str(card) for card in player.hand.cards])
 print("Deck after: ", [str(card) for card in myGame.deck.cards])
+
+
+myGame.currentPlayer.attacked = True
+myGame.nextTurn()
+myGame.currentPlayer.attacked = True
+myGame.nextTurn()
+myGame.nextTurn()
+myGame.nextTurn()

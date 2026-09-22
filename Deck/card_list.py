@@ -1,6 +1,14 @@
 from Deck import cards
 import json
 
+# Creates Lists for each Card Type
+
+attackCardList = []
+supportCardList = []
+prizeCardList = []
+
+# Pulls data from Json Database
+
 with open("items/attack.json", "r") as attack:
     attackCards = json.load(attack)
 
@@ -10,9 +18,8 @@ with open("items/support.json", "r") as support:
 with open("items/prize.json", "r") as prize:
     prizeCards = json.load(prize)
 
-attackCardList = []
-supportCardList = []
-prizeCardList = []
+
+# Adds cards from database to each list respectfully
 
 for card in attackCards:
     newCard = cards.attackCard(

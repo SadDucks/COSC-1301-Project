@@ -1,7 +1,6 @@
 from Deck.deck import hand;
 
-
-
+# Creates players
 class player:
     def __init__(self, name):
         self.name = name
@@ -9,7 +8,8 @@ class player:
         self.activeCard = None
         self.bench = []
         self.prizeCards = []
-        self.energy = 0
+        self.energy = 10 # Max 100 Energy
+        self.attacked = False
 
     def setActiveCard(self, card):
         self.activeCard = card

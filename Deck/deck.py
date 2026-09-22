@@ -13,12 +13,16 @@ class deck:
         for card in card_list.supportCardList:
             self.addCard(card)
 
+
     # Adds cards to deck
     def addCard(self, card):
         self.cards.append(card)
 
+
+    # Draws cards and removes them from deck
     def drawCard(self):
         return self.cards.pop(0)
+
 
     # Shuffles (Randomizes) deck
     def shuffle(self):

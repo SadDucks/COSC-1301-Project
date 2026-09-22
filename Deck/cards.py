@@ -1,5 +1,6 @@
+# Creates the basic information for every card
+
 class card:
-    # Creates the basic information for every card
     def __init__(self, id, name, image):
         self.id = id
         self.name = name
@@ -7,6 +8,8 @@ class card:
 
     def __str__(self):
         return self.name
+
+# Creates Attack Cards
 
 class attackCard(card):
     def __init__(self, id, name, image, attack, energyCost, health):
@@ -16,6 +19,7 @@ class attackCard(card):
         self.health = health
         self.currentHealth = health
 
+# Creates Support Cards
 
 class supportCard(card):
     def __init__(self, id, name, image, healing, energy):
@@ -23,6 +27,7 @@ class supportCard(card):
         self.healing = healing
         self.energy = energy
 
+# Creates Prize Cards
 
 class prizeCard(card):
     def __init__(self, id, name, image):
