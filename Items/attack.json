@@ -1,5 +1,5 @@
 [
-    { "id": 1, "name": "Gannondorf", "image": "Assets/attack/Ganondorf.svg", "attack": 15, "energy": 20, "health": 50},
+    { "id": 1, "name": "Gannondorf", "image": "Assets/attack/Ganondorf.png", "attack": 15, "energy": 20, "health": 50},
     { "id": 2, "name": "Link", "image": "filepath", "attack": 15, "energy": 20, "health": 50},
     { "id": 3, "name": "Zelda", "image": "filepath", "attack": 20, "energy": 20, "health": 25},
     { "id": 4, "name": "Calamo", "image": "filepath", "attack": 5, "energy": 20, "health": 10},
