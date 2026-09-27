@@ -19,3 +19,6 @@ class player:
 
     def addPrizeCard(self, card):
         self.prizeCards.append(card);
+
+    def getEnergy(self):
+        return self.energy;

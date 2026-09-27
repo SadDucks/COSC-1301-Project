@@ -29,12 +29,20 @@ class gameplayScene(QtWidgets.QWidget):
         #Creating player layout
         self.background = QtGui.QPixmap("Assets/gamePlayScene/background.jpeg");
         self.playAreas = playArea();
+        self.game = game(4);
+        self.game.drawStartingHands();
         self.playerLayout = QtWidgets.QGridLayout();
 
+        #Adding play areas to grid
         self.playerLayout.addLayout(self.playAreas.player2(), 0, 1);
         self.playerLayout.addLayout(self.playAreas.player3(), 1, 0);
         self.playerLayout.addLayout(self.playAreas.player4(), 1, 2);
         self.playerLayout.addLayout(self.playAreas.player1(), 2, 1);
+        energyDisplay = self.playAreas.playerAttributes(self.game.players[0]);
+        self.playerLayout.addWidget(
+            energyDisplay, 0, 2,
+            QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignRight
+        );
 
         self.playerLayout.setColumnStretch(0, 1);
         self.playerLayout.setColumnStretch(1, 1);
@@ -47,9 +55,6 @@ class gameplayScene(QtWidgets.QWidget):
         self.setLayout(self.playerLayout);
         self.playAreas.resize(self.size());
 
-        #creating game
-        self.game = game(4);
-        self.game.drawStartingHands();
         self.playAreas.showHand(self.game.players);
 
 
@@ -200,11 +205,21 @@ class playArea:
 
         self.resizeHands();
 
-    #Card Health and Player Stanima
-    def playerAttributes(self):
+    #Player energy and healthdisplay
+    def playerAttributes(self, player):
         #Health
-        cardHealthRec = QtWidgets.QFrame();
+        playerAttributesFrame = QtWidgets.QFrame();
 
-        #Stamina
-        playerStaminaRec = QtWidgets.QFrame();
-        pass;
+        playerAttributesFrame.setFixedSize(64, 64);
+        playerAttributesFrame.setStyleSheet(
+            "QFrame { background-color: #23408E; border: 3px solid black; }"
+            "QLabel { color: white; border: none; font-size: 32px;}"
+        );
+        energyLayout = QtWidgets.QHBoxLayout(playerAttributesFrame);
+        energyLayout.setContentsMargins(0, 0, 0, 0);
+
+        self.energyLabel = QtWidgets.QLabel(str(player.getEnergy()));
+        self.energyLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignVCenter);
+        energyLayout.addWidget(self.energyLabel);
+
+        return playerAttributesFrame;
