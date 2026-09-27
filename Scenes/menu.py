@@ -335,7 +335,13 @@ class settingsOverlayMenu(QtWidgets.QWidget):
     def resolution(self, resolution):
         if self.config.getDisplayMode() == "Windowed":
             width, height = map(int, resolution.split("x"));
-            self.window().resize(width, height);
+            window = self.window();
+            window.resize(width, height);
+            screen = window.screen().availableGeometry();
+            window.move(
+                screen.x() + (screen.width() - window.width()) // 2,
+                screen.y() + (screen.height() - window.height()) // 2
+            );
 
     def displayMode(self, displayMode):
         self.config.setDisplayMode(displayMode);
@@ -355,7 +361,6 @@ class settingsOverlayMenu(QtWidgets.QWidget):
 
                 self.resolutionDropdown.setEnabled(True);
                 self.resolutionDropdown.setCurrentText(self.config.getResolution());
-                self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
                 self.resolution(self.config.getResolution());
             case "Borderless Windowed":
                 self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint);
