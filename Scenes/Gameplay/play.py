@@ -3,7 +3,8 @@ from PySide6 import QtGui;
 from PySide6 import QtMultimedia;
 from PySide6 import QtWidgets;
 
-
+from Player.game import game;
+from Scenes.Gameplay import visualHand;
 
 class gameplayScene(QtWidgets.QWidget):
 
@@ -42,8 +43,13 @@ class gameplayScene(QtWidgets.QWidget):
         self.playerLayout.setRowStretch(1, 1);
         self.playerLayout.setRowStretch(2, 1);
 
-        self.setLayout(self.playerLayout)
+        self.setLayout(self.playerLayout);
         self.playAreas.resize(self.size());
+
+        #creating game
+        self.game = game(4);
+        self.game.drawStartingHands();
+        self.playAreas.showHand(self.game.players);
 
 
     #Settings
@@ -87,14 +93,21 @@ class gameplayScene(QtWidgets.QWidget):
             QtCore.Qt.TransformationMode.SmoothTransformation
         ));
 
+#Creating play area
 class playArea:
 
     def __init__(self):
         self.playerFrames = [];
+        self.playerHandLayouts = {};
+        self.handWidgets = {};
 
-    def createFrame(self, width, height):
+    #creates the frame for the play area & resize function
+    def createFrame(self, width, height, playerNumber):
         rect = QtWidgets.QFrame();
         rect.setStyleSheet("background-color: #026012; border: 3px solid black;");
+        handLayout = QtWidgets.QHBoxLayout(rect);
+        handLayout.setContentsMargins(0, 0, 0, 0);
+        self.playerHandLayouts[playerNumber] = handLayout;
         self.playerFrames.append((rect, width, height));
         return rect;
 
@@ -109,7 +122,7 @@ class playArea:
     #P1 area
     def player1(self):
         player1Area = QtWidgets.QHBoxLayout();
-        rect = self.createFrame(600, 100);
+        rect = self.createFrame(600, 100, 1);
 
         player1Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom);
         player1Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
@@ -118,7 +131,7 @@ class playArea:
 
     def player2(self):
         player2Area = QtWidgets.QHBoxLayout();
-        rect = self.createFrame(600, 100);
+        rect = self.createFrame(600, 100, 2);
 
         player2Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop);
         player2Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
@@ -127,7 +140,7 @@ class playArea:
 
     def player3(self):
         player3Area = QtWidgets.QHBoxLayout();
-        rect = self.createFrame(100, 300);
+        rect = self.createFrame(100, 300, 3);
 
         player3Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft);
         player3Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
@@ -136,10 +149,39 @@ class playArea:
 
     def player4(self):
         player4Area = QtWidgets.QHBoxLayout();
-        rect = self.createFrame(100, 300);
+        rect = self.createFrame(100, 300, 4);
 
         player4Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight);
         player4Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
 
         return player4Area;
+
+    def showHand(self, players=None):
+        if players is None:
+            players = [None];
+        elif hasattr(players, "hand") or hasattr(players, "cards"):
+            players = [players];
+        else:
+            players = list(players);
+
+        for playerNumber, handLayout in self.playerHandLayouts.items():
+            handWidget = self.handWidgets.pop(playerNumber, None);
+            if handWidget is not None:
+                handLayout.removeWidget(handWidget);
+                handWidget.deleteLater();
+
+        rotations = {1: 0, 2: 180, 3: 90, 4: 270};
+        for playerNumber, player in enumerate(players, start=1):
+            handLayout = self.playerHandLayouts.get(playerNumber);
+            if handLayout is None:
+                break;
+
+            cardHand = getattr(player, "hand", player);
+            handWidget = visualHand.visualHand(
+                cardHand,
+                handLayout.parentWidget(),
+                rotation=rotations[playerNumber]
+            );
+            handLayout.addWidget(handWidget);
+            self.handWidgets[playerNumber] = handWidget;
 
