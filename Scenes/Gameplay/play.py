@@ -23,6 +23,7 @@ class gameplayScene(QtWidgets.QWidget):
         self.backgroundMusic = QtMultimedia.QMediaPlayer(self);
         self.backgroundMusic.setAudioOutput(self.audioOutput);
         self.backgroundMusic.setSource(QtCore.QUrl.fromLocalFile("Assets/Sound/Music/wondersOfTheEarth.mp3"));
+        self.backgroundMusic.setLoops(QtMultimedia.QMediaPlayer.Loops.Infinite);
         self.backgroundMusic.play();
 
         #Creating player layout
