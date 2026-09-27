@@ -101,6 +101,7 @@ class playArea:
         self.playerFrames = [];
         self.playerHandLayouts = {};
         self.handWidgets = {};
+        self.scale = 1.0;
 
     #creates the frame for the play area & resize function
     def createFrame(self, width, height, playerNumber):
@@ -114,11 +115,22 @@ class playArea:
 
     def resize(self, size):
         scale = min(size.width() / 960, size.height() / 540);
+        self.scale = scale;
         for rect, width, height in self.playerFrames:
             rect.setFixedSize(
                 max(1, round(width * scale)),
                 max(1, round(height * scale))
             );
+
+        self.resizeHands();
+
+    def resizeHands(self):
+        for playerNumber, handWidget in self.handWidgets.items():
+            baseWidth, baseHeight = (66, 92) if playerNumber in (3, 4) else (70, 98);
+            handWidget.setCardSize(QtCore.QSize(
+                max(1, round(baseWidth * self.scale)),
+                max(1, round(baseHeight * self.scale))
+            ));
 
     #P1 area
     def player1(self):
@@ -129,7 +141,7 @@ class playArea:
         player1Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
 
         return player1Area;
-
+    #P2 area
     def player2(self):
         player2Area = QtWidgets.QHBoxLayout();
         rect = self.createFrame(600, 100, 2);
@@ -138,7 +150,7 @@ class playArea:
         player2Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
 
         return player2Area;
-
+    #P3 area
     def player3(self):
         player3Area = QtWidgets.QHBoxLayout();
         rect = self.createFrame(100, 300, 3);
@@ -147,7 +159,7 @@ class playArea:
         player3Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignHCenter);
 
         return player3Area;
-
+    #P4 area
     def player4(self):
         player4Area = QtWidgets.QHBoxLayout();
         rect = self.createFrame(100, 300, 4);
@@ -186,3 +198,13 @@ class playArea:
             handLayout.addWidget(handWidget);
             self.handWidgets[playerNumber] = handWidget;
 
+        self.resizeHands();
+
+    #Card Health and Player Stanima
+    def playerAttributes(self):
+        #Health
+        cardHealthRec = QtWidgets.QFrame();
+
+        #Stamina
+        playerStaminaRec = QtWidgets.QFrame();
+        pass;
