@@ -16,6 +16,8 @@ class gameplayScene(QtWidgets.QWidget):
         self.windowRef = windowRef;
         self.settingsStatus = False;
 
+        self.activeStatus = False
+
         #Audio
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.audioOutput.setVolume(self.config.getVolume() / 100);
@@ -107,6 +109,8 @@ class playArea:
         self.playerHandLayouts = {};
         self.handWidgets = {};
         self.scale = 1.0;
+        self.energyFrame = None;
+        self.energyLabel = None;
 
     #creates the frame for the play area & resize function
     def createFrame(self, width, height, playerNumber):
@@ -128,6 +132,23 @@ class playArea:
             );
 
         self.resizeHands();
+        self.resizeEnergyAttribute();
+
+    def resizeEnergyAttribute(self):
+        if self.energyFrame is not None:
+            scale = self.scale;
+            self.energyFrame.setFixedSize(
+                max(1, round(64 * scale)),
+                max(1, round(64 * scale))
+            );
+            borderWidth = max(1, round(3 * scale));
+            self.energyFrame.setStyleSheet(
+                f"QFrame {{ background-color: #23408E; border: {borderWidth}px solid black; }}"
+            );
+            self.energyLabel.setStyleSheet("QLabel { color: white; border: none; }");
+            font = self.energyLabel.font();
+            font.setPixelSize(max(1, round(32 * scale)));
+            self.energyLabel.setFont(font);
 
     def resizeHands(self):
         for playerNumber, handWidget in self.handWidgets.items():
@@ -205,20 +226,24 @@ class playArea:
 
         self.resizeHands();
 
-    #Player energy and healthdisplay
+    #Player energy and health display
     def playerEnergyAttribute(self, player):
         playerEnergyAttributeFrame = QtWidgets.QFrame();
-
-        playerEnergyAttributeFrame.setFixedSize(64, 64);
-        playerEnergyAttributeFrame.setStyleSheet(
-            "QFrame { background-color: #23408E; border: 3px solid black; }"
-            "QLabel { color: white; border: none; font-size: 32px;}"
-        );
         energyLayout = QtWidgets.QHBoxLayout(playerEnergyAttributeFrame);
         energyLayout.setContentsMargins(0, 0, 0, 0);
 
         self.energyLabel = QtWidgets.QLabel(str(player.getEnergy()));
+        self.energyFrame = playerEnergyAttributeFrame;
         self.energyLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignVCenter);
         energyLayout.addWidget(self.energyLabel);
+        self.resizeEnergyAttribute();
 
         return playerEnergyAttributeFrame;
+
+    #card currently used for attack
+    def activeAttack(self):
+        pass;
+
+    #When card is selected
+    def passiveCard(self):
+        pass;
