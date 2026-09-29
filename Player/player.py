@@ -9,6 +9,7 @@ class player:
         self.bench = [];
         self.prizeCards = [];
         self.energy = 0;
+        self.attacked = False;
 
     def setActiveCard(self, card):
         self.activeCard = card;

@@ -46,23 +46,23 @@ class game:
         self.currentPlayer = self.players[nextPlayerTurn] # Changes to next player
 
 
-myGame = game(4)
+if __name__ == "__main__":
+    myGame = game(4)
 
-print("Number of players:", len(myGame.players))
+    print("Number of players:", len(myGame.players))
 
-print("Deck before: ", [str(card) for card in myGame.deck.cards])
+    print("Deck before: ", [str(card) for card in myGame.deck.cards])
 
-myGame.drawStartingHands()
+    myGame.drawStartingHands()
 
-for player in myGame.players:
-    print(player.name)
-    print("Hand: ", [str(card) for card in player.hand.cards])
-print("Deck after: ", [str(card) for card in myGame.deck.cards])
+    for player in myGame.players:
+        print(player.name)
+        print("Hand: ", [str(card) for card in player.hand.cards])
+    print("Deck after: ", [str(card) for card in myGame.deck.cards])
 
-
-myGame.currentPlayer.attacked = True
-myGame.nextTurn()
-myGame.currentPlayer.attacked = True
-myGame.nextTurn()
-myGame.nextTurn()
-myGame.nextTurn()
+    myGame.currentPlayer.attacked = True
+    myGame.nextTurn()
+    myGame.currentPlayer.attacked = True
+    myGame.nextTurn()
+    myGame.nextTurn()
+    myGame.nextTurn()
