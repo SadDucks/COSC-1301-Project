@@ -2,6 +2,8 @@ from PySide6 import QtWidgets;
 from PySide6 import QtGui;
 from PySide6 import QtCore;
 
+from Scenes.menu import settingsOverlayMenu;
+
 
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, name, scene, config=None):
@@ -9,6 +11,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Setting Resolution from config
         self.config = config;
+        self.changeWindowHelper = changeWindow(self);
 
         match self.config.getDisplayMode():
             case "Fullscreen":
@@ -25,7 +28,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.showMaximized();
         
         self.setWindowTitle(name);
-        self.setCentralWidget(scene(config));
+        self.setCentralWidget(scene(config, self.changeWindowHelper));
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetNoConstraint);
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 
         self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
@@ -39,7 +43,9 @@ class changeWindow:
         self.window.setWindowTitle(new_title);
 
     def changeScene(self, new_scene):
-        self.window.setCentralWidget(new_scene());
+        scene = new_scene(self.window.config, self);
+        self.window.setCentralWidget(scene);
+        scene.setFocus();
 
     def changeResolution(self, new_resolution):
         width, height = map(int, new_resolution.split("x"));

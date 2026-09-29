@@ -1,0 +1,3 @@
+[
+    { "id": 1, "name": "Health Potion", "image": "filepath", "healing": 50, "energy": 0}
+]

@@ -4,18 +4,27 @@ from PySide6 import QtMultimedia;
 from PySide6 import QtGui;
 import re;
 
+import Scenes.windowManager as windowManager;
+from Scenes.Gameplay import play as play;
+
 class mainMenu(QtWidgets.QWidget):
 
     mainMenuStyle = "CSS/mainMenuStyle.css";
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, windowRef=None):
         super().__init__();
         self.config = config;
+        self.settingsStatus = False;
 
+        #Adding changewindow class from windowManager
+        self.windowRef = windowRef;
+
+        # Setting style sheet
         with open(self.mainMenuStyle, "r") as file:
             buttonStyle = file.read();
             self.setStyleSheet(buttonStyle);
 
+        #Audio and video
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.mediaPlayer = QtMultimedia.QMediaPlayer(self);
         self.mediaPlayer.setAudioOutput(self.audioOutput);
@@ -65,14 +74,27 @@ class mainMenu(QtWidgets.QWidget):
 
     #Button Functionality
     def startGame(self):
-        #Placeholder for starting the game
-        pass
+        if self.windowRef is not None:
+            self.windowRef.changeScene(play.gameplayScene);
+        else:
+            print("No change window found");
 
+    #Settings button functionality
     def openSettings(self):
         self.settingsOverlay = settingsOverlayMenu(self, self.audioOutput, self.config);
+        self.settingsStatus = True;
         self.settingsOverlay.setGeometry(self.rect());
         self.settingsOverlay.raise_();
         self.settingsOverlay.show();
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key.Key_Escape:
+            if self.settingsStatus == True:
+                self.settingsOverlay.close();
+            else:
+                self.openSettings();
+        else:
+            super().keyPressEvent(event);
 
     #Quit function
     def quitGame(self):
@@ -85,59 +107,59 @@ class mainMenu(QtWidgets.QWidget):
 
 #Animate Buttons
 class AnimatedButton(QtWidgets.QPushButton):
-    colorChanged = QtCore.Signal(QtGui.QColor)
+    colorChanged = QtCore.Signal(QtGui.QColor);
 
     def __init__(self, text, style_sheet=None):
-        super().__init__(text)
+        super().__init__(text);
 
         if style_sheet is None:
             with open("CSS/mainMenuStyle.css", "r") as file:
-                style_sheet = file.read()
+                style_sheet = file.read();
 
-        self._color = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton"))
-        self._normalColor = QtGui.QColor(self._color)
-        self._hoverColor = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton:hover"))
-        self._buttonPadding = "15px 32px"
-        self._buttonFontSize = "16px"
-        self._buttonRadius = "8px"
+        self._color = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton"));
+        self._normalColor = QtGui.QColor(self._color);
+        self._hoverColor = QtGui.QColor(self._getStyleColor(style_sheet, "QPushButton:hover"));
+        self._buttonPadding = "15px 32px";
+        self._buttonFontSize = "16px";
+        self._buttonRadius = "8px";
 
-        self.animation = QtCore.QPropertyAnimation(self, b"buttonColor")
-        self.animation.setDuration(300)
+        self.animation = QtCore.QPropertyAnimation(self, b"buttonColor");
+        self.animation.setDuration(300);
         self.animation.setEasingCurve(
             QtCore.QEasingCurve.Type.InOutQuad
-        )
+        );
 
-        self.updateButtonStyle()
+        self.updateButtonStyle();
 
     @staticmethod
     def _getStyleColor(style_sheet, selector):
-        selector_pattern = rf"{re.escape(selector)}\s*\{{(.*?)\}}"
-        selector_match = re.search(selector_pattern, style_sheet, re.DOTALL)
+        selector_pattern = rf"{re.escape(selector)}\s*\{{(.*?)\}}";
+        selector_match = re.search(selector_pattern, style_sheet, re.DOTALL);
         if selector_match is None:
-            raise ValueError(f"Missing {selector} selector in button stylesheet")
+            raise ValueError(f"Missing {selector} selector in button stylesheet");
 
         color_match = re.search(
             r"background-color\s*:\s*([^;]+)",
             selector_match.group(1),
             re.IGNORECASE,
-        )
+        );
         if color_match is None:
-            raise ValueError(f"Missing background-color in {selector} selector")
+            raise ValueError(f"Missing background-color in {selector} selector");
 
-        return color_match.group(1).strip()
+        return color_match.group(1).strip();
 
     @QtCore.Property(QtGui.QColor, notify=colorChanged)
     def buttonColor(self):
-        return self._color
+        return self._color;
 
     @buttonColor.setter
     def buttonColor(self, color):
         if self._color == color:
-            return
+            return;
 
-        self._color = color
-        self.updateButtonStyle()
-        self.colorChanged.emit(color)
+        self._color = color;
+        self.updateButtonStyle();
+        self.colorChanged.emit(color);
 
     def updateButtonStyle(self):
         self.setStyleSheet(f"""
@@ -149,28 +171,29 @@ class AnimatedButton(QtWidgets.QPushButton):
                 font-size: {self._buttonFontSize};
                 border-radius: {self._buttonRadius};
             }}
-        """)
+        """);
 
     def setButtonStyle(self, padding, font_size, radius):
-        self._buttonPadding = padding
-        self._buttonFontSize = font_size
-        self._buttonRadius = radius
-        self.updateButtonStyle()
+        self._buttonPadding = padding;
+        self._buttonFontSize = font_size;
+        self._buttonRadius = radius;
+        self.updateButtonStyle();
 
     def animateTo(self, color):
-        self.animation.stop()
-        self.animation.setStartValue(self._color)
-        self.animation.setEndValue(QtGui.QColor(color))
-        self.animation.start()
+        self.animation.stop();
+        self.animation.setStartValue(self._color);
+        self.animation.setEndValue(QtGui.QColor(color));
+        self.animation.start();
 
     def enterEvent(self, event):
-        self.animateTo(self._hoverColor)
-        super().enterEvent(event)
+        self.animateTo(self._hoverColor);
+        super().enterEvent(event);
 
     def leaveEvent(self, event):
-        self.animateTo(self._normalColor)
-        super().leaveEvent(event)
+        self.animateTo(self._normalColor);
+        super().leaveEvent(event);
 
+#Settings Menu Class
 class settingsOverlayMenu(QtWidgets.QWidget):
     def __init__(self, parent=None, audio_output=None, config=None):
         super().__init__(parent);
@@ -250,9 +273,9 @@ class settingsOverlayMenu(QtWidgets.QWidget):
         self.resolutionDropdown = QtWidgets.QComboBox();
         self.resolutionDropdown.setObjectName("Resolution");
 
-        self.resolutionDropdown.addItem("800x600");
-        self.resolutionDropdown.addItem("1024x768");
+        self.resolutionDropdown.addItem("960x540");
         self.resolutionDropdown.addItem("1280x720");
+        self.resolutionDropdown.addItem("1600x900");
         self.resolutionDropdown.addItem("1920x1080");
 
         if self.config.getDisplayMode() == "Windowed":
@@ -312,7 +335,13 @@ class settingsOverlayMenu(QtWidgets.QWidget):
     def resolution(self, resolution):
         if self.config.getDisplayMode() == "Windowed":
             width, height = map(int, resolution.split("x"));
-            self.window().resize(width, height);
+            window = self.window();
+            window.resize(width, height);
+            screen = window.screen().availableGeometry();
+            window.move(
+                screen.x() + (screen.width() - window.width()) // 2,
+                screen.y() + (screen.height() - window.height()) // 2
+            );
 
     def displayMode(self, displayMode):
         self.config.setDisplayMode(displayMode);
@@ -325,14 +354,13 @@ class settingsOverlayMenu(QtWidgets.QWidget):
                 self.window().showFullScreen();
             case "Windowed":
                 # Return normal window properties and size to the window
-                self.window().setWindowFlags(self.window().windowFlags() & ~QtCore.Qt.WindowType.FramelessWindowHint);
+                self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint, False);
                 self.window().setWindowState(QtCore.Qt.WindowState.WindowNoState);
                 self.window().showNormal();
                 self.window().show();
 
                 self.resolutionDropdown.setEnabled(True);
                 self.resolutionDropdown.setCurrentText(self.config.getResolution());
-                self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);
                 self.resolution(self.config.getResolution());
             case "Borderless Windowed":
                 self.window().setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint);
@@ -343,6 +371,7 @@ class settingsOverlayMenu(QtWidgets.QWidget):
     # Close function to close the settings overlay and save the volume setting
     def close(self):
         self.audioOutput.setVolume(self.config.getVolume() / 100.0);
+        self.parent().settingsStatus = False;
 
         super().close();
 
