@@ -1,7 +1,6 @@
 from Deck.deck import hand;
 
-
-
+# Creates players
 class player:
     def __init__(self, name):
         self.name = name;
