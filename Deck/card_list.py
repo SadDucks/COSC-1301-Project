@@ -3,9 +3,9 @@ import json;
 
 # Creates Lists for each Card Type
 
-attackCardList = []
-supportCardList = []
-prizeCardList = []
+attackCardList = [];
+supportCardList = [];
+prizeCardList = [];
 
 # Pulls data from Json Database
 
@@ -20,9 +20,6 @@ with open("items/prize.json", "r") as prize:
 
 
 # Adds cards from database to each list respectfully
-attackCardList = [];
-supportCardList = [];
-prizeCardList = [];
 
 for card in attackCards:
     newCard = cards.attackCard(
