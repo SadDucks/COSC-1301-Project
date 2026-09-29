@@ -29,6 +29,7 @@ class mainWindow(QtWidgets.QMainWindow):
         
         self.setWindowTitle(name);
         self.setCentralWidget(scene(config, self.changeWindowHelper));
+        self.layout().setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetNoConstraint);
         self.setWindowIcon(QtGui.QIcon("Assets/windowIcon/icon.png"));
 
         self.window().move(center_x := (self.window().screen().geometry().width() - self.window().width()) // 2, center_y := (self.window().screen().geometry().height() - self.window().height()) // 2);

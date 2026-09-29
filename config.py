@@ -54,5 +54,5 @@ class Config:
             "volume": 50,
             "displayMode": "Windowed",
             "resolution": "960x540"
-        }
+        };
         self.saveConfig();
