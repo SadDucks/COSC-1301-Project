@@ -5,6 +5,7 @@ from PySide6 import QtGui;
 from PySide6 import QtMultimedia;
 from PySide6 import QtWidgets;
 
+from Deck.cards import attackCard, prizeCard, supportCard;
 from Player.game import game;
 from Scenes.Gameplay import visualHand;
 
@@ -97,7 +98,9 @@ class gameplayScene(QtWidgets.QWidget):
         if self.cardPreview is not None:
             self.positionCardPreview();
 
+    #Card Preview -- On call action upon clicking a card in the hand, shows a larger image of the card with its name and type
     def showCardPreview(self, card):
+        #Checks if the current player is the one who clicked the card, if not it closes the preview window
         if self.game.currentPlayer is not self.game.players[0]:
             self.closeCardPreview();
             return;
@@ -112,20 +115,31 @@ class gameplayScene(QtWidgets.QWidget):
             previewLayout = QtWidgets.QVBoxLayout(self.cardPreview);
             previewLayout.setContentsMargins(10, 10, 10, 10);
 
-            cardNav = QtWidgets.QHBoxLayout();
+            header = QtWidgets.QHBoxLayout();
+            footer = QtWidgets.QHBoxLayout();
+
             self.cardPreviewName = QtWidgets.QLabel();
+            self.cardPreviewName.setText(card.name);
+
+            self.cardPreviewType = QtWidgets.QLabel();
+            self.cardPreviewType.setText(self.getCardType(card));
+
             closeButton = QtWidgets.QPushButton("Close");
             closeButton.clicked.connect(self.closeCardPreview);
 
-            cardNav.addWidget(self.cardPreviewName, 1);
-            cardNav.addWidget(closeButton);
-            previewLayout.addLayout(cardNav);
+            #Adds elements to header
+            header.addWidget(self.cardPreviewName, 1);
+            header.addWidget(self.cardPreviewType);
+            header.addWidget(closeButton);
+
+
+            previewLayout.addLayout(header);
 
             self.cardPreviewImage = QtWidgets.QLabel();
             self.cardPreviewImage.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
             previewLayout.addWidget(self.cardPreviewImage, 1);
 
-        self.cardPreviewName.setText(card.name);
+      
         image_path = Path(card.image);
         if not image_path.is_absolute():
             image_path = Path(__file__).resolve().parents[2] / image_path;
@@ -134,6 +148,17 @@ class gameplayScene(QtWidgets.QWidget):
         self.cardPreview.show();
         self.cardPreview.raise_();
 
+    #Grab Cards Type
+    def getCardType(self, card):
+        if isinstance(card, attackCard):
+            return "Attack"
+        if isinstance(card, prizeCard):
+            return "Prize"
+        if isinstance(card, supportCard):
+            return "Support"
+        return "Unknown"
+    
+    #Creates preview window for image
     def positionCardPreview(self):
         panelWidth = min(280, max(1, self.width() - 40));
         panelHeight = min(400, max(1, self.height() - 40));
