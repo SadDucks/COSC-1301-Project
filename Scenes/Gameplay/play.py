@@ -98,6 +98,10 @@ class gameplayScene(QtWidgets.QWidget):
             self.positionCardPreview();
 
     def showCardPreview(self, card):
+        if self.game.currentPlayer is not self.game.players[0]:
+            self.closeCardPreview();
+            return;
+
         if self.cardPreview is None:
             self.cardPreview = QtWidgets.QFrame(self);
             self.cardPreview.setStyleSheet(
