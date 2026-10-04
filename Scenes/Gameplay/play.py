@@ -139,7 +139,7 @@ class gameplayScene(QtWidgets.QWidget):
             self.cardPreviewImage.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
             previewLayout.addWidget(self.cardPreviewImage, 1);
 
-      
+        #Obtains iamge path and sets the pixmap for the card preview image
         image_path = Path(card.image);
         if not image_path.is_absolute():
             image_path = Path(__file__).resolve().parents[2] / image_path;
@@ -147,6 +147,18 @@ class gameplayScene(QtWidgets.QWidget):
         self.positionCardPreview();
         self.cardPreview.show();
         self.cardPreview.raise_();
+
+        #Temp solution for setting the color of the card name and type based on the card type
+        match self.getCardType(card):
+            case "Attack":
+                self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+                self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+            case "Prize":
+                self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+                self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+            case "Support":
+                self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+                self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
 
     #Grab Cards Type
     def getCardType(self, card):
