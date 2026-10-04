@@ -42,10 +42,10 @@ class mainMenu(QtWidgets.QWidget):
         title.show();
 
         #Play Button
-        play = AnimatedButton("Play", buttonStyle);
-        play.setObjectName("play");
-        play.clicked.connect(self.startGame);
-        play.show();
+        singlePlayer = AnimatedButton("Single Player", buttonStyle);
+        singlePlayer.setObjectName("singlePlayer");
+        singlePlayer.clicked.connect(self.startGame);
+        singlePlayer.show();
 
         #Settings Button
         settings = AnimatedButton("Settings", buttonStyle);
@@ -66,7 +66,7 @@ class mainMenu(QtWidgets.QWidget):
         layout.addWidget(title);
 
         #Adding buttons to layout
-        layout.addWidget(play);
+        layout.addWidget(singlePlayer);
         layout.addWidget(settings);
         layout.addWidget(quit);
 
