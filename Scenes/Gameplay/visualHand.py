@@ -5,10 +5,26 @@ from PySide6 import QtCore, QtGui, QtWidgets;
 from Deck.deck import deck;
 
 
+class cardImageLabel(QtWidgets.QLabel):
+	clicked = QtCore.Signal(object);
+
+	def __init__(self, card, parent=None):
+		super().__init__(parent);
+		self.card = card;
+
+	def mousePressEvent(self, event):
+		if event.button() == QtCore.Qt.MouseButton.LeftButton:
+			self.clicked.emit(self.card);
+		super().mousePressEvent(event);
+
+
 class visualHand(QtWidgets.QWidget):
-	def __init__(self, card_deck=None, parent=None, rotation=0):
+	cardSelected = QtCore.Signal(object);
+
+	def __init__(self, card_deck=None, parent=None, rotation=0, selectable=False):
 		super().__init__(parent);
 		self.rotation = rotation;
+		self.selectable = selectable;
 
 		self.card_deck = card_deck or deck();
 		self.card_widgets = [];
@@ -37,7 +53,9 @@ class visualHand(QtWidgets.QWidget):
 			image_path = Path(__file__).resolve().parents[2] / image_path;
 
 		source = QtGui.QPixmap(str(image_path));
-		card_image = QtWidgets.QLabel();
+		card_image = cardImageLabel(card) if self.selectable else QtWidgets.QLabel();
+		if self.selectable:
+			card_image.clicked.connect(self.cardSelected.emit);
 
 		card_image.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
 		card_image.setToolTip(card.name);

@@ -1,3 +1,5 @@
+from pathlib import Path;
+
 from PySide6 import QtCore;
 from PySide6 import QtGui;
 from PySide6 import QtMultimedia;
@@ -58,6 +60,8 @@ class gameplayScene(QtWidgets.QWidget):
         self.playAreas.resize(self.size());
 
         self.playAreas.showHand(self.game.players);
+        self.playAreas.handWidgets[1].cardSelected.connect(self.showCardPreview);
+        self.cardPreview = None;
 
 
     #Settings
@@ -90,6 +94,62 @@ class gameplayScene(QtWidgets.QWidget):
 
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
+        if self.cardPreview is not None:
+            self.positionCardPreview();
+
+    def showCardPreview(self, card):
+        if self.cardPreview is None:
+            self.cardPreview = QtWidgets.QFrame(self);
+            self.cardPreview.setStyleSheet(
+                "QFrame { background-color: rgba(12, 20, 16, 225); border: 2px solid #d9c98b; }"
+                "QLabel { color: white; border: none; }"
+                "QPushButton { color: white; background-color: #34533d; border: 1px solid #d9c98b; padding: 3px 8px; }"
+            );
+            previewLayout = QtWidgets.QVBoxLayout(self.cardPreview);
+            previewLayout.setContentsMargins(10, 10, 10, 10);
+
+            cardNav = QtWidgets.QHBoxLayout();
+            self.cardPreviewName = QtWidgets.QLabel();
+            closeButton = QtWidgets.QPushButton("Close");
+            closeButton.clicked.connect(self.closeCardPreview);
+
+            cardNav.addWidget(self.cardPreviewName, 1);
+            cardNav.addWidget(closeButton);
+            previewLayout.addLayout(cardNav);
+
+            self.cardPreviewImage = QtWidgets.QLabel();
+            self.cardPreviewImage.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+            previewLayout.addWidget(self.cardPreviewImage, 1);
+
+        self.cardPreviewName.setText(card.name);
+        image_path = Path(card.image);
+        if not image_path.is_absolute():
+            image_path = Path(__file__).resolve().parents[2] / image_path;
+        self.cardPreviewSource = QtGui.QPixmap(str(image_path));
+        self.positionCardPreview();
+        self.cardPreview.show();
+        self.cardPreview.raise_();
+
+    def positionCardPreview(self):
+        panelWidth = min(280, max(1, self.width() - 40));
+        panelHeight = min(400, max(1, self.height() - 40));
+        self.cardPreview.setGeometry(
+            self.width() - panelWidth - 20,
+            (self.height() - panelHeight) // 2,
+            panelWidth,
+            panelHeight
+        );
+        imageSize = QtCore.QSize(max(1, panelWidth - 32), max(1, panelHeight - 80));
+        pixmap = self.cardPreviewSource.scaled(
+            imageSize,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        );
+        self.cardPreviewImage.setPixmap(pixmap);
+
+    def closeCardPreview(self):
+        if self.cardPreview is not None:
+            self.cardPreview.hide();
 
     #Setting scene background
     def paintEvent(self, event):
@@ -219,7 +279,8 @@ class playArea:
             handWidget = visualHand.visualHand(
                 cardHand,
                 handLayout.parentWidget(),
-                rotation=rotations[playerNumber]
+                rotation=rotations[playerNumber],
+                selectable=playerNumber == 1
             );
             handLayout.addWidget(handWidget);
             self.handWidgets[playerNumber] = handWidget;
