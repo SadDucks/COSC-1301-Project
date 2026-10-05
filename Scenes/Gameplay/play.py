@@ -116,7 +116,7 @@ class gameplayScene(QtWidgets.QWidget):
             previewLayout.setContentsMargins(10, 10, 10, 10);
 
             header = QtWidgets.QHBoxLayout();
-            footer = QtWidgets.QHBoxLayout();
+            actions = QtWidgets.QHBoxLayout();
 
             self.cardPreviewName = QtWidgets.QLabel();
             self.cardPreviewName.setText(card.name);
@@ -153,12 +153,25 @@ class gameplayScene(QtWidgets.QWidget):
             case "Attack":
                 self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
                 self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+
+                setActiveButton = QtWidgets.QPushButton("Set Active");
+                attackButton = QtWidgets.QPushButton("Attack");
+
+                actions.addWidget(setActiveButton, 1);
+                actions.addWidget(attackButton, 1);
+
+                previewLayout.addLayout(actions);
             case "Prize":
                 self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
                 self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
             case "Support":
                 self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
                 self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+
+                useButton = QtWidgets.QPushButton("Use");
+                actions.addWidget(useButton, 1);
+
+                previewLayout.addLayout(actions);
 
     #Grab Cards Type
     def getCardType(self, card):
@@ -180,7 +193,7 @@ class gameplayScene(QtWidgets.QWidget):
             panelWidth,
             panelHeight
         );
-        imageSize = QtCore.QSize(max(1, panelWidth - 32), max(1, panelHeight - 80));
+        imageSize = QtCore.QSize(max(1, panelWidth - 32), max(1, panelHeight - 120));
         pixmap = self.cardPreviewSource.scaled(
             imageSize,
             QtCore.Qt.AspectRatioMode.KeepAspectRatio,
