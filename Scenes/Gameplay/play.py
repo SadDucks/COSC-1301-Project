@@ -96,114 +96,20 @@ class gameplayScene(QtWidgets.QWidget):
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
         if self.cardPreview is not None:
-            self.positionCardPreview();
+            self.cardPreview.reposition();
 
     #Card Preview -- On call action upon clicking a card in the hand, shows a larger image of the card with its name and type
     def showCardPreview(self, card):
-        #Checks if the current player is the one who clicked the card, if not it closes the preview window
         if self.game.currentPlayer is not self.game.players[0]:
-            self.closeCardPreview();
+            if self.cardPreview is not None:
+                self.cardPreview.hide();
             return;
 
         if self.cardPreview is None:
-            self.cardPreview = QtWidgets.QFrame(self);
-            self.cardPreview.setStyleSheet(
-                "QFrame { background-color: rgba(12, 20, 16, 225); border: 2px solid #d9c98b; }"
-                "QLabel { color: white; border: none; }"
-                "QPushButton { color: white; background-color: #34533d; border: 1px solid #d9c98b; padding: 3px 8px; }"
-            );
-            previewLayout = QtWidgets.QVBoxLayout(self.cardPreview);
-            previewLayout.setContentsMargins(10, 10, 10, 10);
-
-            header = QtWidgets.QHBoxLayout();
-            actions = QtWidgets.QHBoxLayout();
-
-            self.cardPreviewName = QtWidgets.QLabel();
-            self.cardPreviewName.setText(card.name);
-
-            self.cardPreviewType = QtWidgets.QLabel();
-            self.cardPreviewType.setText(self.getCardType(card));
-
-            closeButton = QtWidgets.QPushButton("Close");
-            closeButton.clicked.connect(self.closeCardPreview);
-
-            #Adds elements to header
-            header.addWidget(self.cardPreviewName, 1);
-            header.addWidget(self.cardPreviewType);
-            header.addWidget(closeButton);
-
-
-            previewLayout.addLayout(header);
-
-            self.cardPreviewImage = QtWidgets.QLabel();
-            self.cardPreviewImage.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
-            previewLayout.addWidget(self.cardPreviewImage, 1);
-
-        #Obtains iamge path and sets the pixmap for the card preview image
-        image_path = Path(card.image);
-        if not image_path.is_absolute():
-            image_path = Path(__file__).resolve().parents[2] / image_path;
-        self.cardPreviewSource = QtGui.QPixmap(str(image_path));
-        self.positionCardPreview();
+            self.cardPreview = cardPreview(self);
+        self.cardPreview.setCard(card);
         self.cardPreview.show();
         self.cardPreview.raise_();
-
-        #Temp solution for setting the color of the card name and type based on the card type
-        match self.getCardType(card):
-            case "Attack":
-                self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-                self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-
-                setActiveButton = QtWidgets.QPushButton("Set Active");
-                attackButton = QtWidgets.QPushButton("Attack");
-
-                actions.addWidget(setActiveButton, 1);
-                actions.addWidget(attackButton, 1);
-
-                previewLayout.addLayout(actions);
-            case "Prize":
-                self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-                self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-            case "Support":
-                self.cardPreviewName.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-                self.cardPreviewType.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-
-                useButton = QtWidgets.QPushButton("Use");
-                actions.addWidget(useButton, 1);
-
-                previewLayout.addLayout(actions);
-
-    #Grab Cards Type
-    def getCardType(self, card):
-        if isinstance(card, attackCard):
-            return "Attack"
-        if isinstance(card, prizeCard):
-            return "Prize"
-        if isinstance(card, supportCard):
-            return "Support"
-        return "Unknown"
-    
-    #Creates preview window for image
-    def positionCardPreview(self):
-        panelWidth = min(280, max(1, self.width() - 40));
-        panelHeight = min(400, max(1, self.height() - 40));
-        self.cardPreview.setGeometry(
-            self.width() - panelWidth - 20,
-            (self.height() - panelHeight) // 2,
-            panelWidth,
-            panelHeight
-        );
-        imageSize = QtCore.QSize(max(1, panelWidth - 32), max(1, panelHeight - 120));
-        pixmap = self.cardPreviewSource.scaled(
-            imageSize,
-            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-            QtCore.Qt.TransformationMode.SmoothTransformation
-        );
-        self.cardPreviewImage.setPixmap(pixmap);
-
-    def closeCardPreview(self):
-        if self.cardPreview is not None:
-            self.cardPreview.hide();
 
     #Setting scene background
     def paintEvent(self, event):
@@ -217,7 +123,6 @@ class gameplayScene(QtWidgets.QWidget):
 
 #Creating play area
 class playArea:
-
     def __init__(self):
         self.playerFrames = [];
         self.playerHandLayouts = {};
@@ -362,3 +267,92 @@ class playArea:
     #When card is selected
     def passiveCard(self):
         pass;
+
+#Adding card preview to the gameplay scene, which shows a larger image of the card with its name and 
+#type when a card is clicked in the hand
+#and actions that can be performed with the card
+class cardPreview(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent);
+        self.cardPreviewSource = QtGui.QPixmap();
+        self.setStyleSheet(
+            "QFrame { background-color: rgba(12, 20, 16, 225); border: 2px solid #d9c98b; }"
+            "QLabel { color: white; border: none; }"
+            "QPushButton { color: white; background-color: #34533d; border: 1px solid #d9c98b; padding: 3px 8px; }"
+        );
+        previewLayout = QtWidgets.QVBoxLayout(self);
+        previewLayout.setContentsMargins(10, 10, 10, 10);
+
+        header = QtWidgets.QHBoxLayout();
+        self.actions = QtWidgets.QHBoxLayout();
+
+        self.nameLabel = QtWidgets.QLabel();
+        self.typeLabel = QtWidgets.QLabel();
+        closeButton = QtWidgets.QPushButton("Close");
+        closeButton.clicked.connect(self.hide);
+
+        header.addWidget(self.nameLabel, 1);
+        header.addWidget(self.typeLabel);
+        header.addWidget(closeButton);
+        previewLayout.addLayout(header);
+
+        self.imageLabel = QtWidgets.QLabel();
+        self.imageLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+        previewLayout.addWidget(self.imageLabel, 1);
+        previewLayout.addLayout(self.actions);
+
+    def setCard(self, card):
+        self.nameLabel.setText(card.name);
+        self.typeLabel.setText(self.getCardType(card));
+
+        for index in reversed(range(self.actions.count())):
+            item = self.actions.takeAt(index);
+            widget = item.widget();
+            if widget is not None:
+                widget.deleteLater();
+
+        match self.getCardType(card):
+            case "Attack":
+                self.actions.addWidget(QtWidgets.QPushButton("Set Active"), 1);
+                self.actions.addWidget(QtWidgets.QPushButton("Attack"), 1);
+            case "Support":
+                self.actions.addWidget(QtWidgets.QPushButton("Use"), 1);
+
+        self.nameLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+        self.typeLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+
+        imagePath = Path(card.image);
+        if not imagePath.is_absolute():
+            imagePath = Path(__file__).resolve().parents[2] / imagePath;
+        self.cardPreviewSource = QtGui.QPixmap(str(imagePath));
+        self.reposition();
+
+    def getCardType(self, card):
+        if isinstance(card, attackCard):
+            return "Attack"
+        if isinstance(card, prizeCard):
+            return "Prize"
+        if isinstance(card, supportCard):
+            return "Support"
+        return "Unknown"
+
+    def reposition(self):
+        parent = self.parentWidget();
+        if parent is None:
+            return;
+
+        panelWidth = min(280, max(1, parent.width() - 40));
+        panelHeight = min(400, max(1, parent.height() - 40));
+        self.setGeometry(
+            parent.width() - panelWidth - 20,
+            (parent.height() - panelHeight) // 2,
+            panelWidth,
+            panelHeight
+        );
+        imageSize = QtCore.QSize(max(1, panelWidth - 32), max(1, panelHeight - 120));
+        pixmap = self.cardPreviewSource.scaled(
+            imageSize,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        );
+        self.imageLabel.setPixmap(pixmap);
