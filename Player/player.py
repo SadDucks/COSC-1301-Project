@@ -2,8 +2,10 @@ from Deck.deck import hand;
 
 # Creates players
 class player:
-    def __init__(self, name):
+    def __init__(self, name, isBot):
         self.name = name;
+        self.isBot = isBot;
+        self.bot = None;
         self.hand = hand();
         self.activeCard = None;
         self.bench = [];
