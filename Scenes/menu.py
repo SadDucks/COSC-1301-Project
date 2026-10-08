@@ -35,7 +35,7 @@ class mainMenu(QtWidgets.QWidget):
         self.mediaPlayer.play();
 
         #Game Title
-        title = QtWidgets.QLabel("COSC 1301 Group Project");
+        title = QtWidgets.QLabel("Chronicles of the Triforce");
         title.setObjectName("title");
         title.setStyleSheet("font-size: 24px; font-weight: bold;");
         title.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignHCenter);
