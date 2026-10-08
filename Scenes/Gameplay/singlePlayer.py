@@ -313,8 +313,10 @@ class cardPreview(QtWidgets.QFrame):
 
         match self.getCardType(card):
             case "Attack":
-                self.actions.addWidget(QtWidgets.QPushButton("Set Active"), 1);
-                self.actions.addWidget(QtWidgets.QPushButton("Attack"), 1);
+                if not card.isActive:
+                    self.actions.addWidget(QtWidgets.QPushButton("Set Active"), 1);
+                else:
+                    self.actions.addWidget(QtWidgets.QPushButton("Attack"), 1);
             case "Support":
                 self.actions.addWidget(QtWidgets.QPushButton("Use"), 1);
 

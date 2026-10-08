@@ -18,6 +18,7 @@ class attackCard(card):
         self.energy = energyCost;
         self.health = health;
         self.currentHealth = health;
+        self.isActive = False;
 
 # Creates Support Cards
 
