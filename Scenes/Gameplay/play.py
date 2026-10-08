@@ -34,7 +34,7 @@ class gameplayScene(QtWidgets.QWidget):
         #Creating player layout
         self.background = QtGui.QPixmap("Assets/gamePlayScene/background.jpeg");
         self.playAreas = playArea();
-        self.game = game(4);
+        self.game = game(1, 3);
         self.game.drawStartingHands();
         self.playerLayout = QtWidgets.QGridLayout();
 

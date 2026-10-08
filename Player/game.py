@@ -1,21 +1,34 @@
 import sys;
 from pathlib import Path;
-import bot;
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]));
 
 from Player import player;
+from Player import bot;
 from Deck.deck import deck;
 
 class game:
-    def __init__(self, numberOfPlayers, numberOfBots): # Total Players and how many are Bots
+    def __init__(self, numberOfPlayers, numberOfBots=None): # Total Players and how many are Bots
+        numberOfPlayers = max(1, int(numberOfPlayers));
+
+        if numberOfBots is None:
+            numberOfBots = max(0, 4 - numberOfPlayers);
+        else:
+            numberOfBots = max(0, int(numberOfBots));
+
+        totalPlayers = min(4, numberOfPlayers + numberOfBots);
+
+        if totalPlayers < 4:
+            numberOfBots += 4 - totalPlayers;
+            totalPlayers = 4;
+
         self.players = []; # List of Players
         self.deck = deck();
         self.round = 1 # Round Number
 
-        for i in range(numberOfPlayers):
-            isBot = i >= numberOfPlayers - numberOfBots;
+        for i in range(totalPlayers):
+            isBot = i >= totalPlayers - numberOfBots;
             newPlayer = player.player(f"Player {i + 1}", isBot);
 
             if isBot:
@@ -81,6 +94,7 @@ if __name__ == "__main__":
 # Bot test code, prints out the bot's hand, active card, bench, energy, opponents, target, and attack status
 
 # Everything after this is just for testing
+"""
 for player in myGame.players:
     if player.isBot:
         print("This is test code")
@@ -111,3 +125,4 @@ for player in myGame.players:
             print("Bot target: None")
 
         print("Bot has attacked:", player.attacked)
+"""
