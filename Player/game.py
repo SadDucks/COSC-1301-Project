@@ -65,6 +65,8 @@ class game:
 
         print(self.currentPlayer.name);
         print(self.currentPlayer.energy);
+
+        print("Next player turn:", self.players[nextPlayerTurn].name)
         
         self.currentPlayer = self.players[nextPlayerTurn]; # Changes to next player
 
