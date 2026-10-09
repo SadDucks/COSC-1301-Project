@@ -49,11 +49,31 @@ class gameplayScene(QtWidgets.QWidget):
         self.playerLayout.addLayout(self.playAreas.player3(), 1, 0);
         self.playerLayout.addLayout(self.playAreas.player4(), 1, 2);
         self.playerLayout.addLayout(self.playAreas.player1(), 2, 1);
+
         energyDisplay = self.playAreas.playerEnergyAttribute(self.game.players[0]);
         self.playerLayout.addWidget(
             energyDisplay, 0, 2,
             QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignRight
         );
+
+        self.endTurnButton = QtWidgets.QPushButton("End Turn");
+        self.endTurnButton.clicked.connect(self.endTurn);
+        self.endTurnButton.setStyleSheet(
+            "QPushButton { "
+            "background-color: rgba(128, 0, 0, 220); "
+            "color: black; "
+            "padding: 5px 10px; "
+            "border-radius: 5px; "
+            "} "
+            "QPushButton:hover { "
+            "background-color: rgba(102, 0, 0, 240); "
+            "}");
+
+        self.playerLayout.addWidget(
+            self.endTurnButton, 2, 2,
+            QtCore.Qt.AlignmentFlag.AlignBottom | QtCore.Qt.AlignmentFlag.AlignRight
+        );
+        self.updateEndTurnButton();
 
         self.playerLayout.setColumnStretch(0, 1);
         self.playerLayout.setColumnStretch(1, 1);
@@ -116,6 +136,17 @@ class gameplayScene(QtWidgets.QWidget):
         self.cardPreview.setCard(card);
         self.cardPreview.show();
         self.cardPreview.raise_();
+
+    #End Turn button handling
+    def endTurn(self):
+        if self.game.currentPlayer is not self.game.players[0]:
+            return;
+
+        self.game.nextTurn();
+        self.updateEndTurnButton();
+
+    def updateEndTurnButton(self):
+        self.endTurnButton.setVisible(self.game.currentPlayer is self.game.players[0]);
 
     #Setting scene background
     def paintEvent(self, event):
