@@ -25,11 +25,17 @@ class gameplayScene(QtWidgets.QWidget):
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.audioOutput.setVolume(self.config.getVolume() / 100);
 
+        #Background Music
         self.backgroundMusic = QtMultimedia.QMediaPlayer(self);
         self.backgroundMusic.setAudioOutput(self.audioOutput);
         self.backgroundMusic.setSource(QtCore.QUrl.fromLocalFile("Assets/Sound/Music/wondersOfTheEarth.mp3"));
         self.backgroundMusic.setLoops(QtMultimedia.QMediaPlayer.Loops.Infinite);
         self.backgroundMusic.play();
+
+        #Card Draw Sound
+        self.cardDrawSound = QtMultimedia.QMediaPlayer(self);
+        self.cardDrawSound.setAudioOutput(self.audioOutput);
+        self.cardDrawSound.setSource(QtCore.QUrl.fromLocalFile("Assets/Sound/SFX/cardDealt.mp3"));
 
         #Creating player layout
         self.background = QtGui.QPixmap("Assets/gamePlayScene/background.jpeg");
@@ -286,6 +292,7 @@ class cardPreview(QtWidgets.QFrame):
         header = QtWidgets.QHBoxLayout();
         self.actions = QtWidgets.QHBoxLayout();
 
+        #Header section for the card preview, contains card name, type, and close button
         self.nameLabel = QtWidgets.QLabel();
         self.typeLabel = QtWidgets.QLabel();
         closeButton = QtWidgets.QPushButton("Close");
@@ -296,6 +303,7 @@ class cardPreview(QtWidgets.QFrame):
         header.addWidget(closeButton);
         previewLayout.addLayout(header);
 
+        #Image section for the card preview, shows the card image
         self.imageLabel = QtWidgets.QLabel();
         self.imageLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
         previewLayout.addWidget(self.imageLabel, 1);
@@ -311,14 +319,18 @@ class cardPreview(QtWidgets.QFrame):
             if widget is not None:
                 widget.deleteLater();
 
+        #Obtaining card type and setting appropriate action buttons
         match self.getCardType(card):
             case "Attack":
                 if not card.isActive:
-                    self.actions.addWidget(QtWidgets.QPushButton("Set Active"), 1);
+                    setActiveButton = QtWidgets.QPushButton("Set Active");
+                    self.actions.addWidget(setActiveButton, 1);
                 else:
-                    self.actions.addWidget(QtWidgets.QPushButton("Attack"), 1);
+                    attackButton = QtWidgets.QPushButton("Attack");
+                    self.actions.addWidget(attackButton, 1);
             case "Support":
-                self.actions.addWidget(QtWidgets.QPushButton("Use"), 1);
+                useButton = QtWidgets.QPushButton("Use");
+                self.actions.addWidget(useButton, 1);
 
         self.nameLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
         self.typeLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
