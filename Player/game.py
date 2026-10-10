@@ -54,11 +54,6 @@ class game:
             self.currentPlayer.attacked = False;
         else:
             self.currentPlayer.energy += 3;
-        if self.currentPlayer.attacked: # Adds energy after each turn
-            self.currentPlayer.energy += 8;
-            self.currentPlayer.attacked = False;
-        else:
-            self.currentPlayer.energy += 3;
 
         if currentPlayerTurn == len(self.players) - 1:  # Increases round number after last player
             self.round += 1;
