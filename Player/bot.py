@@ -38,6 +38,7 @@ class bot:
     def chooseActiveCard(self):
         if self.player.activeCard is None and len(self.player.bench) > 0:
             self.player.activeCard = self.player.bench.pop(0);
+            self.player.activeCard.isActive = True;
 
     def chooseTarget(self):
         
@@ -61,23 +62,25 @@ class bot:
                 if hasattr(card, "attack"):
                     self.player.activeCard = card;
                     self.player.hand.removeCard(card);
+                    card.isActive = True;
                     print("Active card chosen:", self.player.activeCard.name);#TEST
                     attacker = card;
                     break;
+
+        if attacker is None:
+            print("No active card available, moving on.");
+            return;
+
+        target = self.chooseTarget();
+        if target is None:
+            print("No target"); #TEST
+            return;
 
         if self.player.energy < attacker.energy:
             print("Not enough energy!");#TEST
             return;
 
         self.player.energy -= attacker.energy;
-
-        target = self.chooseTarget();
-
-        print("Target: ", target.name);#TEST
-
-        if target is None:
-            print("No target"); #TEST
-            return;
 
         damage = Combat.attack(attacker, target);
 

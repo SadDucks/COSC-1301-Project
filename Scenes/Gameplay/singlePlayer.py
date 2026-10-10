@@ -37,18 +37,22 @@ class gameplayScene(QtWidgets.QWidget):
         self.cardDrawSound.setAudioOutput(self.audioOutput);
         self.cardDrawSound.setSource(QtCore.QUrl.fromLocalFile("Assets/Sound/SFX/cardDealt.mp3"));
 
-        #Creating player layout
+        #Creating player layout and logic variables
         self.background = QtGui.QPixmap("Assets/gamePlayScene/background.jpeg");
         self.playAreas = playArea();
         self.game = game(1, 3);
         self.game.drawStartingHands();
+
+        self.botTurnHandler = handleBotTurn(self.game, self);
+
         self.playerLayout = QtWidgets.QGridLayout();
         self.activeCardSource = QtGui.QPixmap();
+        
         self.activeCard = None;
         self.activeCardLabel = visualHand.cardImageLabel(None, self);
         self.activeCardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
         self.activeCardLabel.setCursor(QtCore.Qt.CursorShape.PointingHandCursor);
-        self.activeCardLabel.clicked.connect(self.showCardPreview);
+        self.activeCardLabel.clicked.connect(self.showPassiveCard);
         self.activeCardLabel.setStyleSheet(
             "QLabel { background: transparent; border: none; }"
         );
@@ -101,8 +105,9 @@ class gameplayScene(QtWidgets.QWidget):
         self.playAreas.resize(self.size());
 
         self.playAreas.showHand(self.game.players);
-        self.playAreas.handWidgets[1].cardSelected.connect(self.showCardPreview);
-        self.cardPreview = None;
+        self.playAreas.handWidgets[1].cardSelected.connect(self.showPassiveCard);
+        self.playAreas.showActiveCards(self.game.players, self);
+        self.passiveCardPreview = None;
 
 
     #Settings
@@ -119,6 +124,7 @@ class gameplayScene(QtWidgets.QWidget):
     def showEvent(self, event):
         super().showEvent(event);
         self.setFocus();
+        self.playAreas.showActiveCards(self.game.players, self);
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key.Key_Escape:
@@ -132,36 +138,43 @@ class gameplayScene(QtWidgets.QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event);
         self.playAreas.resize(self.size());
+        self.playAreas.showActiveCards(self.game.players, self);
         self.resizeActiveCard();
 
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
-        if self.cardPreview is not None:
-            self.cardPreview.reposition();
+        if self.passiveCardPreview is not None:
+            self.passiveCardPreview.reposition();
 
     #Card Preview -- On call action upon clicking a card in the hand, shows a larger image of the card with its name and type
-    def showCardPreview(self, card):
+    def showPassiveCard(self, card):
         if self.game.currentPlayer is not self.game.players[0]:
-            if self.cardPreview is not None:
-                self.cardPreview.hide();
+            if self.passiveCardPreview is not None:
+                self.passiveCardPreview.hide();
             return;
 
-        if self.cardPreview is None:
-            self.cardPreview = cardPreview(self);
-        self.cardPreview.setCard(card);
-        self.cardPreview.show();
-        self.cardPreview.raise_();
+        if self.passiveCardPreview is None:
+            self.passiveCardPreview = showPassiveCard(self);
+        self.passiveCardPreview.setCard(card);
+        self.passiveCardPreview.show();
+        self.passiveCardPreview.raise_();
 
     #End Turn button handling
     def endTurn(self):
         if self.game.currentPlayer is not self.game.players[0]:
             return;
 
+        if self.passiveCardPreview is not None:
+            self.passiveCardPreview.hide();
         self.game.nextTurn();
-        self.updateEndTurnButton();
+        self.botTurnHandler.handleBotTurn();
 
     def updateEndTurnButton(self):
         self.endTurnButton.setVisible(self.game.currentPlayer is self.game.players[0]);
+        self.endTurnButton.setEnabled(
+            self.game.currentPlayer is self.game.players[0]
+            and not self.botTurnHandler.botTurnInProgress
+        );
 
     def showActiveCard(self, card):
         self.activeCard = card;
@@ -215,8 +228,10 @@ class gameplayScene(QtWidgets.QWidget):
 class playArea:
     def __init__(self):
         self.playerFrames = [];
+        self.playerAreaFrames = {};
         self.playerHandLayouts = {};
         self.handWidgets = {};
+        self.activeCardLabels = {};
         self.scale = 1.0;
         self.energyFrame = None;
         self.energyLabel = None;
@@ -225,9 +240,17 @@ class playArea:
     def createFrame(self, width, height, playerNumber):
         rect = QtWidgets.QFrame();
         rect.setStyleSheet("background-color: #026012; border: 3px solid black;");
-        handLayout = QtWidgets.QHBoxLayout(rect);
-        handLayout.setContentsMargins(0, 0, 0, 0);
-        self.playerHandLayouts[playerNumber] = handLayout;
+        frameLayout = QtWidgets.QHBoxLayout(rect);
+        frameLayout.setContentsMargins(0, 0, 0, 0);
+        frameLayout.setSpacing(2);
+
+        activeCardLabel = QtWidgets.QLabel(rect);
+        activeCardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+        activeCardLabel.setStyleSheet("QLabel { background: transparent; border: 2px solid black; }");
+        activeCardLabel.hide();
+        self.activeCardLabels[playerNumber] = activeCardLabel;
+        self.playerAreaFrames[playerNumber] = rect;
+        self.playerHandLayouts[playerNumber] = frameLayout;
         self.playerFrames.append((rect, width, height));
         return rect;
 
@@ -266,6 +289,75 @@ class playArea:
                 max(1, round(baseWidth * self.scale)),
                 max(1, round(baseHeight * self.scale))
             ));
+
+    def showActiveCards(self, players, parent):
+        for playerNumber, player in enumerate(players, start=1):
+            activeCardLabel = self.activeCardLabels.get(playerNumber);
+            if activeCardLabel is None:
+                continue;
+
+            frame = self.playerAreaFrames[playerNumber];
+            card = player.activeCard;
+            if playerNumber == 1 or card is None:
+                activeCardLabel.clear();
+                activeCardLabel.hide();
+                continue;
+
+            if activeCardLabel.parentWidget() is not parent:
+                activeCardLabel.setParent(parent);
+            framePosition = frame.mapTo(parent, QtCore.QPoint(0, 0));
+            cardSize = QtCore.QSize(
+                max(1, round(70 * self.scale)),
+                max(1, round(98 * self.scale))
+            );
+            activeCardLabel.setToolTip(card.name);
+
+            imagePath = Path(card.image);
+            if not imagePath.is_absolute():
+                imagePath = Path(__file__).resolve().parents[2] / imagePath;
+            pixmap = QtGui.QPixmap(str(imagePath));
+            if pixmap.isNull():
+                activeCardLabel.setFixedSize(cardSize);
+                activeCardLabel.setPixmap(QtGui.QPixmap());
+                activeCardLabel.setText(card.name);
+            else:
+                pixmap = pixmap.scaled(
+                    cardSize,
+                    QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                    QtCore.Qt.TransformationMode.SmoothTransformation
+                );
+                rotation = {2: 180, 3: 90, 4: 270}[playerNumber];
+                if rotation:
+                    pixmap = pixmap.transformed(
+                        QtGui.QTransform().rotate(rotation),
+                        QtCore.Qt.TransformationMode.SmoothTransformation
+                    );
+                activeCardLabel.setFixedSize(pixmap.size());
+                activeCardLabel.setText("");
+                activeCardLabel.setPixmap(pixmap);
+
+            labelWidth = activeCardLabel.width();
+            labelHeight = activeCardLabel.height();
+            frameCenterX = framePosition.x() + frame.width() // 2;
+            frameCenterY = framePosition.y() + frame.height() // 2;
+            if playerNumber == 2:
+                position = QtCore.QPoint(
+                    frameCenterX - labelWidth // 2,
+                    framePosition.y() + frame.height() + 8
+                );
+            elif playerNumber == 3:
+                position = QtCore.QPoint(
+                    framePosition.x() + frame.width() + 8,
+                    frameCenterY - labelHeight // 2
+                );
+            else:
+                position = QtCore.QPoint(
+                    framePosition.x() - labelWidth - 8,
+                    frameCenterY - labelHeight // 2
+                );
+            activeCardLabel.move(position);
+            activeCardLabel.show();
+            activeCardLabel.raise_();
 
     #P1 area
     def player1(self):
@@ -349,18 +441,10 @@ class playArea:
 
         return playerEnergyAttributeFrame;
 
-    #card currently used for attack
-    def activeAttack(self):
-        pass;
-
-    #When card is selected
-    def passiveCard(self):
-        pass;
-
 #Adding card preview to the gameplay scene, which shows a larger image of the card with its name and 
 #type when a card is clicked in the hand
 #and actions that can be performed with the card
-class cardPreview(QtWidgets.QFrame):
+class showPassiveCard(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super().__init__(parent);
         self.cardPreviewSource = QtGui.QPixmap();
@@ -479,3 +563,44 @@ class cardPreview(QtWidgets.QFrame):
             QtCore.Qt.TransformationMode.SmoothTransformation
         );
         self.imageLabel.setPixmap(pixmap);
+
+# Handle the bot's turn in the game. Takes logic from bot.py
+class handleBotTurn(QtCore.QObject):
+    def __init__(self, game, scene):
+        super().__init__();
+        self.game = game;
+        self.scene = scene;
+        self.botTurnInProgress = False;
+
+    def handleBotTurn(self, runBotAction=False):
+        currentPlayer = self.game.currentPlayer;
+        if not currentPlayer.isBot:
+            self.botTurnInProgress = False;
+            self.scene.updateEndTurnButton();
+            self.scene.playAreas.energyLabel.setText(
+                str(self.game.players[0].getEnergy())
+            );
+            return;
+
+        self.botTurnInProgress = True;
+        self.scene.updateEndTurnButton();
+        if not runBotAction:
+            QtCore.QTimer.singleShot(
+                500,
+                lambda: self.handleBotTurn(runBotAction=True)
+            );
+            return;
+
+        if currentPlayer.bot is None:
+            raise RuntimeError(
+                f"{currentPlayer.name} is marked as a bot but has no bot controller"
+            );
+
+        currentPlayer.bot.takeTurn();
+        self.scene.playAreas.showHand(self.game.players);
+        self.scene.playAreas.handWidgets[1].cardSelected.connect(
+            self.scene.showPassiveCard
+        );
+        self.scene.playAreas.showActiveCards(self.game.players, self.scene);
+        self.game.nextTurn();
+        self.handleBotTurn();
