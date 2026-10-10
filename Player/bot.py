@@ -87,10 +87,6 @@ class bot:
         self.player.attacked = True;
 
         if target.currentHealth <= 0:
-            print("target defeated");#TEST
             target.currentHealth = 0;
 
-        print("Attacker: ", attacker.name, " dealt ", damage, " damage to ", target.name);#TEST
-        print("Target health: ", target.currentHealth, "/", target.health);#TEST
-        print("Attacker health: ", attacker.currentHealth, "/", attacker.health);#TEST
-        print("Player energy: ", self.player.energy);#TEST
+        Combat.reportAttack(self.player, attacker, target, damage);

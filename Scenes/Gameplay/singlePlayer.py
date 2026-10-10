@@ -5,6 +5,7 @@ from PySide6 import QtGui;
 from PySide6 import QtMultimedia;
 from PySide6 import QtWidgets;
 
+from Deck import Combat;
 from Deck.cards import attackCard, prizeCard, supportCard;
 from Player.game import game;
 from Scenes.Gameplay import visualHand;
@@ -44,6 +45,7 @@ class gameplayScene(QtWidgets.QWidget):
         self.game.drawStartingHands();
 
         self.botTurnHandler = handleBotTurn(self.game, self);
+        self.playerActions = playerActions(self.game, self);
 
         self.playerLayout = QtWidgets.QGridLayout();
         self.activeCardSource = QtGui.QPixmap();
@@ -164,6 +166,7 @@ class gameplayScene(QtWidgets.QWidget):
         if self.game.currentPlayer is not self.game.players[0]:
             return;
 
+        self.playerActions.cancelAttackSelection();
         if self.passiveCardPreview is not None:
             self.passiveCardPreview.hide();
         self.game.nextTurn();
@@ -244,7 +247,7 @@ class playArea:
         frameLayout.setContentsMargins(0, 0, 0, 0);
         frameLayout.setSpacing(2);
 
-        activeCardLabel = QtWidgets.QLabel(rect);
+        activeCardLabel = visualHand.cardImageLabel(None, rect);
         activeCardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
         activeCardLabel.setStyleSheet("QLabel { background: transparent; border: 2px solid black; }");
         activeCardLabel.hide();
@@ -303,6 +306,11 @@ class playArea:
                 activeCardLabel.hide();
                 continue;
 
+            activeCardLabel.card = card;
+            if not getattr(activeCardLabel, "targetSelectionConnected", False):
+                activeCardLabel.clicked.connect(parent.playerActions.selectTarget);
+                activeCardLabel.targetSelectionConnected = True;
+
             if activeCardLabel.parentWidget() is not parent:
                 activeCardLabel.setParent(parent);
             framePosition = frame.mapTo(parent, QtCore.QPoint(0, 0));
@@ -358,6 +366,29 @@ class playArea:
             activeCardLabel.move(position);
             activeCardLabel.show();
             activeCardLabel.raise_();
+
+    def setAttackTargets(self, players, enabled):
+            for playerNumber, player in enumerate(players, start=1):
+                activeCardLabel = self.activeCardLabels.get(playerNumber);
+                if activeCardLabel is None or activeCardLabel.isHidden():
+                    continue;
+
+                isAttackTarget = (
+                    enabled
+                    and playerNumber != 1
+                    and player.activeCard is not None
+                    and player.activeCard.currentHealth > 0
+                );
+                if isAttackTarget:
+                    glow = QtWidgets.QGraphicsDropShadowEffect(activeCardLabel);
+                    glow.setBlurRadius(24);
+                    glow.setColor(QtGui.QColor(255, 255, 255, 255));
+                    glow.setOffset(0, 0);
+                    activeCardLabel.setGraphicsEffect(glow);
+                    activeCardLabel.setCursor(QtCore.Qt.CursorShape.PointingHandCursor);
+                else:
+                    activeCardLabel.setGraphicsEffect(None);
+                    activeCardLabel.setCursor(QtCore.Qt.CursorShape.ArrowCursor);
 
     #P1 area
     def player1(self):
@@ -493,11 +524,14 @@ class showPassiveCard(QtWidgets.QFrame):
                     setActiveButton = QtWidgets.QPushButton("Set Active");
                     self.actions.addWidget(setActiveButton, 1);
                     setActiveButton.clicked.connect(
-                        lambda checked=False, selectedCard=card: self.setActive(selectedCard)
+                        lambda checked=False, selectedCard=card: (
+                            self.parentWidget().playerActions.setActive(selectedCard)
+                        )
                     );
                 else:
                     attackButton = QtWidgets.QPushButton("Attack");
                     self.actions.addWidget(attackButton, 1);
+                    attackButton.clicked.connect(self.parentWidget().playerActions.attack);
             case "Support":
                 useButton = QtWidgets.QPushButton("Use");
                 self.actions.addWidget(useButton, 1);
@@ -519,28 +553,6 @@ class showPassiveCard(QtWidgets.QFrame):
         if isinstance(card, supportCard):
             return "Support"
         return "Unknown"
-
-    # Set the given card as the active card for the current player
-    def setActive(self, card):
-        scene = self.parentWidget();
-        if scene is None or scene.game.currentPlayer is not scene.game.players[0]:
-            return;
-
-        player = scene.game.currentPlayer;
-        if not isinstance(card, attackCard) or card not in player.hand.cards:
-            return;
-
-        handWidget = scene.playAreas.handWidgets[1];
-        if player.activeCard is not None:
-            player.activeCard.isActive = False;
-            player.hand.addCard(player.activeCard);
-            handWidget.addCard(player.activeCard);
-        handWidget.removeCard(card);
-        player.setActiveCard(card);
-        card.isActive = True;
-        scene.showActiveCard(card);
-        
-        self.hide();
 
     # Reposition the card preview panel within the parent widget
     def reposition(self):
@@ -569,6 +581,105 @@ class playerActions(QtCore.QObject):
         super().__init__();
         self.game = game;
         self.scene = scene;
+        self.selectingTarget = False;
+
+        # Set the given card as the active card for the current player
+    def setActive(self, card):
+        scene = self.scene;
+        if scene is None or scene.game.currentPlayer is not scene.game.players[0]:
+            return;
+        self.cancelAttackSelection();
+
+        player = scene.game.currentPlayer;
+        if not isinstance(card, attackCard) or card not in player.hand.cards:
+            return;
+
+        handWidget = scene.playAreas.handWidgets.get(1);
+        if handWidget is None:
+            raise RuntimeError("The human player's hand is not displayed");
+
+        if player.activeCard is not None:
+            player.activeCard.isActive = False;
+            player.hand.addCard(player.activeCard);
+            handWidget.addCard(player.activeCard);
+        if not handWidget.removeCard(card):
+            raise RuntimeError(f"Could not remove {card.name} from the displayed hand");
+        player.setActiveCard(card);
+        card.isActive = True;
+        scene.showActiveCard(card);
+        if scene.passiveCardPreview is not None:
+            scene.passiveCardPreview.hide();
+
+    #Attack related functions
+    def attack(self):
+        if self.selectingTarget:
+            self.cancelAttackSelection();
+            return;
+
+        if self.game.currentPlayer is not self.game.players[0]:
+            return;
+
+        attacker = self.game.currentPlayer.activeCard;
+        if not isinstance(attacker, attackCard) or self.game.currentPlayer.attacked:
+            return;
+        if self.game.currentPlayer.energy < attacker.energy:
+            return;
+
+        targets = [
+            player for player in self.game.players
+            if (
+                player is not self.game.currentPlayer
+                and player.activeCard is not None
+                and player.activeCard.currentHealth > 0
+            )
+        ];
+        if not targets:
+            return;
+
+        self.scene.playAreas.setAttackTargets(self.game.players, True);
+        self.selectingTarget = True;
+        if self.scene.passiveCardPreview is not None:
+            self.scene.passiveCardPreview.hide();
+
+    def cancelAttackSelection(self):
+        self.selectingTarget = False;
+        self.scene.playAreas.setAttackTargets(self.game.players, False);
+
+    def selectTarget(self, targetCard):
+        if not self.selectingTarget:
+            return;
+
+        attackerPlayer = self.game.currentPlayer;
+        attacker = attackerPlayer.activeCard;
+        targetPlayer = next(
+            (
+                player for player in self.game.players
+                if player is not attackerPlayer and player.activeCard is targetCard
+            ),
+            None
+        );
+        if (
+            attackerPlayer is not self.game.players[0]
+            or not isinstance(attacker, attackCard)
+            or attackerPlayer.attacked
+            or targetPlayer is None
+            or targetCard.currentHealth <= 0
+            or attackerPlayer.energy < attacker.energy
+        ):
+            return;
+
+        attackerPlayer.energy -= attacker.energy;
+        damage = Combat.attack(attacker, targetCard);
+        attackerPlayer.attacked = True;
+        if targetCard.currentHealth <= 0:
+            targetCard.currentHealth = 0;
+        Combat.reportAttack(attackerPlayer, attacker, targetCard, damage);
+
+        self.cancelAttackSelection();
+        self.scene.playAreas.energyLabel.setText(str(attackerPlayer.getEnergy()));
+        self.scene.playAreas.showActiveCards(self.game.players, self.scene);
+        if self.scene.passiveCardPreview is not None:
+            self.scene.passiveCardPreview.hide();
 
 # Handle the bot's turn in the game. Takes logic from bot.py
 class handleBotTurn(QtCore.QObject):
