@@ -59,6 +59,7 @@ class game:
             self.round += 1;
 
         print(self.currentPlayer.name);
+
         print("Energy:", self.currentPlayer.energy);
 
         print("Next player turn:", self.players[nextPlayerTurn].name)
@@ -75,17 +76,27 @@ if __name__ == "__main__":
 
     myGame.drawStartingHands();
 
+    myGame.currentPlayer.setActiveCard(myGame.currentPlayer.hand.cards[0]); # Sets the first card in the players hand as the active card
+
+    myGame.players[2].energy = 100 # JUST FOR TESTING
+
     for player in myGame.players:
         print(player.name);
         print("Hand: ", [str(card) for card in player.hand.cards]);
         print("Energy: ", player.energy);
         print("isBot: ", player.isBot);
+        print("Active Card: ", player.activeCard);
     print("Deck after: ", [str(card) for card in myGame.deck.cards]);
 
     myGame.currentPlayer.attacked = True;
+
     myGame.nextTurn();
-    myGame.currentPlayer.attacked = True;
     myGame.nextTurn();
+    if myGame.currentPlayer.isBot:
+                myGame.currentPlayer.bot.takeTurn()
+    myGame.nextTurn();
+
+    
 
 
 # Bot test code, prints out the bot's hand, active card, bench, energy, opponents, target, and attack status

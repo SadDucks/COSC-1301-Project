@@ -40,6 +40,7 @@ class bot:
             self.player.activeCard = self.player.bench.pop(0);
 
     def chooseTarget(self):
+        
         opponents = self.getOpponents()
 
         for opponent in opponents:
@@ -50,23 +51,43 @@ class bot:
 
     def takeTurn(self):
 
+        print("TEST\n\n\n")#TEST
+
         self.chooseActiveCard();
         attacker = self.player.activeCard;
 
         if attacker is None:
-            return;
+            for card in self.player.hand.cards:
+                if hasattr(card, "attack"):
+                    self.player.activeCard = card;
+                    self.player.hand.removeCard(card);
+                    print("Active card chosen:", self.player.activeCard.name);#TEST
+                    attacker = card;
+                    break;
 
         if self.player.energy < attacker.energy:
+            print("Not enough energy!");#TEST
             return;
+
+        self.player.energy -= attacker.energy;
 
         target = self.chooseTarget();
 
+        print("Target: ", target.name);#TEST
+
         if target is None:
+            print("No target"); #TEST
             return;
 
-        damage = Combat.calculateDamage(attacker, target);
+        damage = Combat.attack(attacker, target);
 
         self.player.attacked = True;
 
         if target.currentHealth <= 0:
+            print("target defeated");#TEST
             target.currentHealth = 0;
+
+        print("Attacker: ", attacker.name, " dealt ", damage, " damage to ", target.name);#TEST
+        print("Target health: ", target.currentHealth, "/", target.health);#TEST
+        print("Attacker health: ", attacker.currentHealth, "/", attacker.health);#TEST
+        print("Player energy: ", self.player.energy);#TEST
