@@ -43,12 +43,26 @@ class gameplayScene(QtWidgets.QWidget):
         self.game = game(1, 3);
         self.game.drawStartingHands();
         self.playerLayout = QtWidgets.QGridLayout();
+        self.activeCardSource = QtGui.QPixmap();
+        self.activeCard = None;
+        self.activeCardLabel = visualHand.cardImageLabel(None, self);
+        self.activeCardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+        self.activeCardLabel.setCursor(QtCore.Qt.CursorShape.PointingHandCursor);
+        self.activeCardLabel.clicked.connect(self.showCardPreview);
+        self.activeCardLabel.setStyleSheet(
+            "QLabel { background: transparent; border: none; }"
+        );
+        self.activeCardLabel.hide();
 
         #Adding play areas to grid
         self.playerLayout.addLayout(self.playAreas.player2(), 0, 1);
         self.playerLayout.addLayout(self.playAreas.player3(), 1, 0);
         self.playerLayout.addLayout(self.playAreas.player4(), 1, 2);
         self.playerLayout.addLayout(self.playAreas.player1(), 2, 1);
+        self.playerLayout.addWidget(
+            self.activeCardLabel, 1, 1,
+            QtCore.Qt.AlignmentFlag.AlignBottom | QtCore.Qt.AlignmentFlag.AlignHCenter
+        );
 
         energyDisplay = self.playAreas.playerEnergyAttribute(self.game.players[0]);
         self.playerLayout.addWidget(
@@ -118,6 +132,7 @@ class gameplayScene(QtWidgets.QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event);
         self.playAreas.resize(self.size());
+        self.resizeActiveCard();
 
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
@@ -147,6 +162,44 @@ class gameplayScene(QtWidgets.QWidget):
 
     def updateEndTurnButton(self):
         self.endTurnButton.setVisible(self.game.currentPlayer is self.game.players[0]);
+
+    def showActiveCard(self, card):
+        self.activeCard = card;
+        self.activeCardLabel.card = card;
+        imagePath = Path(card.image);
+        if not imagePath.is_absolute():
+            imagePath = Path(__file__).resolve().parents[2] / imagePath;
+        self.activeCardSource = QtGui.QPixmap(str(imagePath));
+        self.activeCardLabel.setToolTip(card.name);
+        self.activeCardLabel.setStyleSheet(
+            "QLabel { background: transparent; border: 2px solid black; }"
+        );
+        self.resizeActiveCard();
+
+    def resizeActiveCard(self):
+        if self.activeCard is None:
+            self.activeCardLabel.hide();
+            return;
+
+        cardSize = QtCore.QSize(
+            max(1, round(70 * self.playAreas.scale)),
+            max(1, round(98 * self.playAreas.scale))
+        );
+        self.activeCardLabel.setFixedSize(cardSize);
+        if self.activeCardSource.isNull():
+            self.activeCardLabel.setPixmap(QtGui.QPixmap());
+            self.activeCardLabel.setText(self.activeCardLabel.toolTip());
+            self.activeCardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+            self.activeCardLabel.show();
+            return;
+
+        self.activeCardLabel.setText("");
+        self.activeCardLabel.setPixmap(self.activeCardSource.scaled(
+            cardSize,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        ));
+        self.activeCardLabel.show();
 
     #Setting scene background
     def paintEvent(self, event):
@@ -218,7 +271,6 @@ class playArea:
     def player1(self):
         player1Area = QtWidgets.QHBoxLayout();
         rect = self.createFrame(600, 100, 1);
-
         player1Area.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom);
         player1Area.addWidget(rect, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
 
@@ -356,6 +408,9 @@ class cardPreview(QtWidgets.QFrame):
                 if not card.isActive:
                     setActiveButton = QtWidgets.QPushButton("Set Active");
                     self.actions.addWidget(setActiveButton, 1);
+                    setActiveButton.clicked.connect(
+                        lambda checked=False, selectedCard=card: self.setActive(selectedCard)
+                    );
                 else:
                     attackButton = QtWidgets.QPushButton("Attack");
                     self.actions.addWidget(attackButton, 1);
@@ -381,6 +436,29 @@ class cardPreview(QtWidgets.QFrame):
             return "Support"
         return "Unknown"
 
+    # Set the given card as the active card for the current player
+    def setActive(self, card):
+        scene = self.parentWidget();
+        if scene is None or scene.game.currentPlayer is not scene.game.players[0]:
+            return;
+
+        player = scene.game.currentPlayer;
+        if not isinstance(card, attackCard) or card not in player.hand.cards:
+            return;
+
+        handWidget = scene.playAreas.handWidgets[1];
+        if player.activeCard is not None:
+            player.activeCard.isActive = False;
+            player.hand.addCard(player.activeCard);
+            handWidget.addCard(player.activeCard);
+        handWidget.removeCard(card);
+        player.setActiveCard(card);
+        card.isActive = True;
+        scene.showActiveCard(card);
+        
+        self.hide();
+
+    # Reposition the card preview panel within the parent widget
     def reposition(self):
         parent = self.parentWidget();
         if parent is None:

@@ -64,7 +64,7 @@ class game:
             self.round += 1;
 
         print(self.currentPlayer.name);
-        print(self.currentPlayer.energy);
+        print("Energy:", self.currentPlayer.energy);
 
         print("Next player turn:", self.players[nextPlayerTurn].name)
         

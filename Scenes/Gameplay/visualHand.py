@@ -64,6 +64,20 @@ class visualHand(QtWidgets.QWidget):
 		self.layout.addWidget(card_image);
 		self.card_widgets.append(card_image);
 
+	def removeCard(self, card):
+		for index, card_image in enumerate(self.card_widgets):
+			if card_image.card is not card:
+				continue;
+
+			self.card_deck.cards.pop(index);
+			self.layout.removeWidget(card_image);
+			card_image.deleteLater();
+			self.card_widgets.pop(index);
+			self.card_sources.pop(index);
+			return True;
+
+		return False;
+
 	def updateCardSize(self, card_image, source):
 		pixmap = source.scaled(
 			self.card_size,
