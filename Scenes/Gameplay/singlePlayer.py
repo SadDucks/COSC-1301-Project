@@ -47,7 +47,7 @@ class gameplayScene(QtWidgets.QWidget):
 
         self.playerLayout = QtWidgets.QGridLayout();
         self.activeCardSource = QtGui.QPixmap();
-        
+
         self.activeCard = None;
         self.activeCardLabel = visualHand.cardImageLabel(None, self);
         self.activeCardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
@@ -564,6 +564,12 @@ class showPassiveCard(QtWidgets.QFrame):
         );
         self.imageLabel.setPixmap(pixmap);
 
+class playerActions(QtCore.QObject):
+    def __init__(self, game, scene):
+        super().__init__();
+        self.game = game;
+        self.scene = scene;
+
 # Handle the bot's turn in the game. Takes logic from bot.py
 class handleBotTurn(QtCore.QObject):
     def __init__(self, game, scene):
@@ -586,7 +592,7 @@ class handleBotTurn(QtCore.QObject):
         self.scene.updateEndTurnButton();
         if not runBotAction:
             QtCore.QTimer.singleShot(
-                500,
+                800,
                 lambda: self.handleBotTurn(runBotAction=True)
             );
             return;
