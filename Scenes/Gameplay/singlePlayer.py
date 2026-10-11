@@ -131,6 +131,7 @@ class gameplayScene(QtWidgets.QWidget):
     def showEvent(self, event):
         super().showEvent(event);
         self.setFocus();
+        self.playerLayout.activate();
         self.playAreas.showActiveCards(self.game.players, self);
 
     def keyPressEvent(self, event):
@@ -145,6 +146,7 @@ class gameplayScene(QtWidgets.QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event);
         self.playAreas.resize(self.size());
+        self.playerLayout.activate();
         self.playAreas.showActiveCards(self.game.players, self);
         self.resizeActiveCard();
 
