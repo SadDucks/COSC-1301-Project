@@ -5,7 +5,6 @@ from PySide6 import QtGui;
 import re;
 
 import Scenes.windowManager as windowManager;
-from Scenes.Gameplay import singlePlayer as singlePlayer;
 
 class mainMenu(QtWidgets.QWidget):
 
@@ -75,9 +74,10 @@ class mainMenu(QtWidgets.QWidget):
     #Button Functionality
     def startGame(self):
         if self.windowRef is not None:
-            self.windowRef.changeScene(singlePlayer.gameplayScene);
+            from Scenes.Gameplay import singlePlayer
+            self.windowRef.changeScene(singlePlayer.gameplayScene)
         else:
-            print("No change window found");
+            print("No change window found")
 
     #Settings button functionality
     def openSettings(self):
