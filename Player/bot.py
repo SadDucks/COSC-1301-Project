@@ -90,3 +90,14 @@ class bot:
             target.currentHealth = 0;
 
         Combat.reportAttack(self.player, attacker, target, damage);
+        if target.currentHealth == 0:
+            defeatedPlayer = next(
+                (
+                    opponent for opponent in self.game.players
+                    if opponent.activeCard is target
+                ),
+                None
+            );
+            if defeatedPlayer is None:
+                raise RuntimeError("The defeated card has no owning player");
+            self.game.resolveActiveCardDefeat(self.player, defeatedPlayer);

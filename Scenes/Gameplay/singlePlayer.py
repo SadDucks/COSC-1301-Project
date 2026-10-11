@@ -332,6 +332,12 @@ class playArea:
                 activeCardLabel.clear();
                 activeCardLabel.hide();
                 healthLabel.hide();
+                if playerNumber == 1:
+                    parent.activeCard = None;
+                    parent.activeCardSource = QtGui.QPixmap();
+                    parent.activeCardLabel.card = None;
+                    parent.activeCardLabel.clear();
+                    parent.activeCardLabel.hide();
                 continue;
 
             if playerNumber == 1:
@@ -802,6 +808,8 @@ class playerActions(QtCore.QObject):
         if targetCard.currentHealth <= 0:
             targetCard.currentHealth = 0;
         Combat.reportAttack(attackerPlayer, attacker, targetCard, damage);
+        if targetCard.currentHealth == 0:
+            self.game.resolveActiveCardDefeat(attackerPlayer, targetPlayer);
 
         self.cancelAttackSelection();
         self.scene.playAreas.energyLabel.setText(str(attackerPlayer.getEnergy()));

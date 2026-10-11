@@ -1,4 +1,5 @@
 import sys;
+import random;
 from pathlib import Path;
 
 if __package__ in (None, ""):
@@ -7,6 +8,7 @@ if __package__ in (None, ""):
 from Player import player;
 from Player import bot;
 from Deck.deck import deck;
+from Deck import card_list;
 
 class game:
     def __init__(self, numberOfPlayers, numberOfBots=None): # Total Players and how many are Bots
@@ -25,6 +27,8 @@ class game:
 
         self.players = []; # List of Players
         self.deck = deck();
+        self.prizeCards = tuple(card_list.prizeCardList);
+        self.discardPile = [];
         self.round = 1 # Round Number
 
         for i in range(totalPlayers):
@@ -44,6 +48,32 @@ class game:
             for i in range(1): # Cards per Player
                 card = self.deck.drawCard();
                 player.hand.addCard(card);
+
+    def resolveActiveCardDefeat(self, winningPlayer, defeatedPlayer):
+        if winningPlayer not in self.players or defeatedPlayer not in self.players:
+            raise ValueError("Both players must belong to this game");
+        if winningPlayer is defeatedPlayer:
+            raise ValueError("A player cannot defeat their own active card");
+
+        defeatedCard = defeatedPlayer.activeCard;
+        if defeatedCard is None or defeatedCard.currentHealth > 0:
+            raise ValueError("The defeated player must have a defeated active card");
+
+        defeatedCard.currentHealth = 0;
+        defeatedCard.isActive = False;
+        self.discardPile.append(defeatedCard);
+        defeatedPlayer.setActiveCard(None);
+
+        if not self.prizeCards:
+            print("The prize deck is empty; no prize card was awarded.");
+            return None;
+
+        prizeChoices = list(self.prizeCards);
+        random.shuffle(prizeChoices);
+        prize = prizeChoices[0];
+        winningPlayer.addPrizeCard(prize);
+        print(f"{winningPlayer.name} earned prize card: {prize.name}");
+        return prize;
 
     def nextTurn(self):
         currentPlayerTurn = self.players.index(self.currentPlayer); # Current Turn
