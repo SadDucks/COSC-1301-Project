@@ -146,9 +146,9 @@ class gameplayScene(QtWidgets.QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event);
         self.playAreas.resize(self.size());
+        self.resizeActiveCard();
         self.playerLayout.activate();
         self.playAreas.showActiveCards(self.game.players, self);
-        self.resizeActiveCard();
 
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
@@ -198,6 +198,7 @@ class gameplayScene(QtWidgets.QWidget):
             "QLabel { background: transparent; border: 2px solid black; }"
         );
         self.resizeActiveCard();
+        self.playAreas.showActiveCards(self.game.players, self);
 
     def resizeActiveCard(self):
         if self.activeCard is None:
@@ -242,6 +243,7 @@ class playArea:
         self.playerHandLayouts = {};
         self.handWidgets = {};
         self.activeCardLabels = {};
+        self.activeCardHealthLabels = {};
         self.scale = 1.0;
         self.energyFrame = None;
         self.energyLabel = None;
@@ -259,6 +261,23 @@ class playArea:
         activeCardLabel.setStyleSheet("QLabel { background: transparent; border: 2px solid black; }");
         activeCardLabel.hide();
         self.activeCardLabels[playerNumber] = activeCardLabel;
+
+        healthLabel = QtWidgets.QLabel(rect);
+        healthLabel.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        );
+        healthLabel.setStyleSheet(
+            "QLabel { "
+            "color: #77dd77; "
+            "background-color: rgba(0, 0, 0, 190); "
+            "border: 1px solid #77dd77; "
+            "border-radius: 4px; "
+            "padding: 2px; "
+            "}"
+        );
+        healthLabel.hide();
+
+        self.activeCardHealthLabels[playerNumber] = healthLabel;
         self.playerAreaFrames[playerNumber] = rect;
         self.playerHandLayouts[playerNumber] = frameLayout;
         self.playerFrames.append((rect, width, height));
@@ -308,9 +327,26 @@ class playArea:
 
             frame = self.playerAreaFrames[playerNumber];
             card = player.activeCard;
-            if playerNumber == 1 or card is None:
+            healthLabel = self.activeCardHealthLabels[playerNumber];
+            if card is None:
                 activeCardLabel.clear();
                 activeCardLabel.hide();
+                healthLabel.hide();
+                continue;
+
+            if playerNumber == 1:
+                activeCardLabel.hide();
+                cardPosition = parent.activeCardLabel.mapTo(
+                    parent, QtCore.QPoint(0, 0)
+                );
+                self.showActiveCardHealth(
+                    healthLabel,
+                    card,
+                    cardPosition,
+                    parent.activeCardLabel.size(),
+                    playerNumber,
+                    parent
+                );
                 continue;
 
             activeCardLabel.card = card;
@@ -373,6 +409,48 @@ class playArea:
             activeCardLabel.move(position);
             activeCardLabel.show();
             activeCardLabel.raise_();
+
+            self.showActiveCardHealth(
+                healthLabel,
+                card,
+                position,
+                activeCardLabel.size(),
+                playerNumber,
+                parent
+            );
+
+    def showActiveCardHealth(self, healthLabel, card, cardPosition, cardSize, playerNumber, parent):
+
+        currentHealth = getattr(card, "currentHealth", None);
+        maximumHealth = getattr(card, "health", None);
+        if currentHealth is None or maximumHealth is None:
+            healthLabel.hide();
+            return;
+
+        if healthLabel.parentWidget() is not parent:
+            healthLabel.setParent(parent);
+        healthLabel.setText(f"HP {currentHealth}/{maximumHealth}");
+        healthLabel.setFixedSize(
+            max(70, round(88 * self.scale)),
+            max(20, round(24 * self.scale))
+        );
+        font = healthLabel.font();
+        font.setPixelSize(max(8, round(12 * self.scale)));
+        healthLabel.setFont(font);
+
+        if playerNumber in (1, 2):
+            position = QtCore.QPoint(
+                cardPosition.x() + cardSize.width() + 4,
+                cardPosition.y() + (cardSize.height() - healthLabel.height()) // 2
+            );
+        else:
+            position = QtCore.QPoint(
+                cardPosition.x() + (cardSize.width() - healthLabel.width()) // 2,
+                cardPosition.y() + cardSize.height() + 4
+            );
+        healthLabel.move(position);
+        healthLabel.show();
+        healthLabel.raise_();
 
     def setAttackTargets(self, players, enabled):
             for playerNumber, player in enumerate(players, start=1):
@@ -465,7 +543,7 @@ class playArea:
 
         self.resizeHands();
 
-    #Player energy and health display
+    #Player energy display
     def playerEnergyAttribute(self, player):
         playerEnergyAttributeFrame = QtWidgets.QFrame();
         energyLayout = QtWidgets.QHBoxLayout(playerEnergyAttributeFrame);
@@ -497,15 +575,14 @@ class showPassiveCard(QtWidgets.QFrame):
         header = QtWidgets.QHBoxLayout();
         self.actions = QtWidgets.QHBoxLayout();
 
-        #Header section for the card preview, contains card name, type, and close button
+        #Header section for the card preview, contains card name, type, and health
         self.nameLabel = QtWidgets.QLabel();
         self.typeLabel = QtWidgets.QLabel();
-        closeButton = QtWidgets.QPushButton("Close");
-        closeButton.clicked.connect(self.hide);
+        self.healthLabel = QtWidgets.QLabel();
 
         header.addWidget(self.nameLabel, 1);
         header.addWidget(self.typeLabel);
-        header.addWidget(closeButton);
+        header.addWidget(self.healthLabel);
         previewLayout.addLayout(header);
 
         #Image section for the card preview, shows the card image
@@ -516,7 +593,15 @@ class showPassiveCard(QtWidgets.QFrame):
 
     def setCard(self, card):
         self.nameLabel.setText(card.name);
-        self.typeLabel.setText(self.getCardType(card));
+        self.typeLabel.setText("Type: " + self.getCardType(card));
+
+        if hasattr(card, "health"):
+            currentHealth = getattr(card, "currentHealth", card.health);
+            self.healthLabel.setText(
+                f"Health: {currentHealth}"
+            );
+        else:
+            self.healthLabel.hide();
 
         for index in reversed(range(self.actions.count())):
             item = self.actions.takeAt(index);
@@ -548,8 +633,20 @@ class showPassiveCard(QtWidgets.QFrame):
                     )
                 );
 
-        self.nameLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
-        self.typeLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
+        closeButton = QtWidgets.QPushButton("Close");
+        closeButton.clicked.connect(self.hide);
+        self.actions.addWidget(closeButton);
+
+        self.healthLabel.setStyleSheet(
+            "QLabel { "
+            "color: #77dd77; "
+            "background-color: rgba(30, 55, 38, 220); "
+            "border: 2px solid #d9c98b; "
+            "border-radius: 5px; "
+            "padding: 3px 6px; "
+            "font-weight: bold; "
+            "}"
+        );
 
         imagePath = Path(card.image);
         if not imagePath.is_absolute():
@@ -559,12 +656,31 @@ class showPassiveCard(QtWidgets.QFrame):
 
     def getCardType(self, card):
         if isinstance(card, attackCard):
+            color = "#c3214b";
+            self.nameLabel.setStyleSheet(self.headerLabelStyle(color));
+            self.typeLabel.setStyleSheet(self.headerLabelStyle(color));
             return "Attack"
         if isinstance(card, prizeCard):
+            color = "#ffd700";
+            self.nameLabel.setStyleSheet(self.headerLabelStyle(color));
+            self.typeLabel.setStyleSheet(self.headerLabelStyle(color));
             return "Prize"
         if isinstance(card, supportCard):
+            color = "#1e90ff";
+            self.nameLabel.setStyleSheet(self.headerLabelStyle(color));
+            self.typeLabel.setStyleSheet(self.headerLabelStyle(color));
             return "Support"
         return "Unknown"
+
+    def headerLabelStyle(self, color):
+        return (
+            "QLabel { "
+            f"color: {color}; "
+            "background-color: rgba(30, 55, 38, 220); "
+            "border: 2px solid #d9c98b; "
+            "border-radius: 5px; "
+            "padding: 3px 6px; }"
+        )
 
     # Reposition the card preview panel within the parent widget
     def reposition(self):
