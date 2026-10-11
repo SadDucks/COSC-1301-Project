@@ -26,6 +26,10 @@ class gameplayScene(QtWidgets.QWidget):
         self.audioOutput = QtMultimedia.QAudioOutput(self);
         self.audioOutput.setVolume(self.config.getVolume() / 100);
 
+        self.soundEffectsOutput = QtMultimedia.QAudioOutput(self);
+        self.soundEffectsOutput.setVolume(self.audioOutput.volume());
+        self.audioOutput.volumeChanged.connect(self.soundEffectsOutput.setVolume);
+
         #Background Music
         self.backgroundMusic = QtMultimedia.QMediaPlayer(self);
         self.backgroundMusic.setAudioOutput(self.audioOutput);
@@ -34,8 +38,9 @@ class gameplayScene(QtWidgets.QWidget):
         self.backgroundMusic.play();
 
         #Card Draw Sound
+
         self.cardDrawSound = QtMultimedia.QMediaPlayer(self);
-        self.cardDrawSound.setAudioOutput(self.audioOutput);
+        self.cardDrawSound.setAudioOutput(self.soundEffectsOutput);
         self.cardDrawSound.setSource(QtCore.QUrl.fromLocalFile("Assets/Sound/SFX/cardDealt.mp3"));
 
         #Creating player layout and logic variables
