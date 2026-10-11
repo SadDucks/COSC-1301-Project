@@ -74,10 +74,10 @@ class mainMenu(QtWidgets.QWidget):
     #Button Functionality
     def startGame(self):
         if self.windowRef is not None:
-            from Scenes.Gameplay import singlePlayer
-            self.windowRef.changeScene(singlePlayer.gameplayScene)
+            from Scenes.Gameplay import singlePlayer;
+            self.windowRef.changeScene(singlePlayer.gameplayScene);
         else:
-            print("No change window found")
+            print("No change window found");
 
     #Settings button functionality
     def openSettings(self):
