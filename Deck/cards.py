@@ -28,6 +28,20 @@ class supportCard(card):
         self.healing = healing;
         self.energy = energy;
 
+    def applyEffect(self, player):
+        player.energy += self.energy;
+
+        activeCard = player.activeCard;
+        if isinstance(activeCard, attackCard):
+            activeCard.currentHealth = min(
+                activeCard.currentHealth + self.healing,
+                activeCard.health
+            );
+
+        print(f"Applied support card {self.name} to player {player}");
+        print(f"Player {player} now has {player.energy} energy and active card health \
+              {player.activeCard.currentHealth if player.activeCard else 'N/A'}");
+
 # Creates Prize Cards
 
 class prizeCard(card):

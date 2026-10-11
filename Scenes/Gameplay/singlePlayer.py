@@ -542,6 +542,11 @@ class showPassiveCard(QtWidgets.QFrame):
             case "Support":
                 useButton = QtWidgets.QPushButton("Use");
                 self.actions.addWidget(useButton, 1);
+                useButton.clicked.connect(
+                    lambda: (
+                        self.parentWidget().playerActions.useSupportCard(card)
+                    )
+                );
 
         self.nameLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
         self.typeLabel.setStyleSheet("QLabel { color: #d9c98b; border: none; }");
@@ -684,6 +689,32 @@ class playerActions(QtCore.QObject):
 
         self.cancelAttackSelection();
         self.scene.playAreas.energyLabel.setText(str(attackerPlayer.getEnergy()));
+        self.scene.playAreas.showActiveCards(self.game.players, self.scene);
+        if self.scene.passiveCardPreview is not None:
+            self.scene.passiveCardPreview.hide();
+
+    # Support card related use
+    def useSupportCard(self, selectedCard):
+        currentPlayer = self.game.currentPlayer;
+        if currentPlayer is not self.game.players[0]:
+            return;
+
+        if not isinstance(selectedCard, supportCard):
+            return;
+
+        if selectedCard not in currentPlayer.hand.cards:
+            return;
+
+        handWidget = self.scene.playAreas.handWidgets.get(1);
+        if handWidget is None:
+            raise RuntimeError("The human player's hand is not displayed");
+        if not handWidget.removeCard(selectedCard):
+            raise RuntimeError(
+                f"Could not remove {selectedCard.name} from the displayed hand"
+            );
+
+        selectedCard.applyEffect(currentPlayer);
+        self.scene.playAreas.energyLabel.setText(str(currentPlayer.getEnergy()));
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         if self.scene.passiveCardPreview is not None:
             self.scene.passiveCardPreview.hide();
