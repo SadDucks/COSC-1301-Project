@@ -19,6 +19,7 @@ class gameplayScene(QtWidgets.QWidget):
         self.config = config;
         self.windowRef = windowRef;
         self.settingsStatus = False;
+        self.scoreOverlay = None;
 
         self.activeStatus = False
 
@@ -94,6 +95,24 @@ class gameplayScene(QtWidgets.QWidget):
             "background-color: rgba(102, 0, 0, 240); "
             "}");
 
+        self.scoreButton = QtWidgets.QPushButton("Score");
+        self.scoreButton.setObjectName("scoreButton");
+        self.scoreButton.clicked.connect(self.showScores);
+        self.scoreButton.setStyleSheet(
+            "QPushButton { "
+            "background-color: rgba(35, 105, 170, 210); "
+            "color: black; "
+            "padding: 5px 10px; "
+            "border-radius: 5px; "
+            "} "
+            "QPushButton:hover { "
+            "background-color: rgba(48, 130, 200, 230); "
+            "}");
+
+        self.playerLayout.addWidget(
+            self.scoreButton, 2, 0,
+            QtCore.Qt.AlignmentFlag.AlignBottom | QtCore.Qt.AlignmentFlag.AlignLeft
+        );
         self.playerLayout.addWidget(
             self.endTurnButton, 2, 2,
             QtCore.Qt.AlignmentFlag.AlignBottom | QtCore.Qt.AlignmentFlag.AlignRight
@@ -136,7 +155,9 @@ class gameplayScene(QtWidgets.QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key.Key_Escape:
-            if self.settingsStatus:
+            if self.scoreOverlay is not None and self.scoreOverlay.isVisible():
+                self.scoreOverlay.close();
+            elif self.settingsStatus:
                 self.settingsOverlay.close();
             else:
                 self.openSettings();
@@ -152,12 +173,17 @@ class gameplayScene(QtWidgets.QWidget):
 
         if hasattr(self, "settingsOverlay"):
             self.settingsOverlay.setGeometry(self.rect());
+        if self.scoreOverlay is not None:
+            self.scoreOverlay.setGeometry(self.rect());
         if self.passiveCardPreview is not None:
             self.passiveCardPreview.reposition();
 
     #Card Preview -- On call action upon clicking a card in the hand, shows a larger image of the card with its name and type
     def showPassiveCard(self, card):
-        if self.game.currentPlayer is not self.game.players[0]:
+        if (
+            self.game.currentPlayer is not self.game.players[0]
+            and not isinstance(card, prizeCard)
+        ):
             if self.passiveCardPreview is not None:
                 self.passiveCardPreview.hide();
             return;
@@ -194,6 +220,16 @@ class gameplayScene(QtWidgets.QWidget):
             f"{winner.name} wins with {len(winner.prizeCards)} prize cards!"
         );
         return True;
+
+    def showScores(self):
+        if self.scoreOverlay is not None:
+            self.scoreOverlay.close();
+            self.scoreOverlay.deleteLater();
+
+        self.scoreOverlay = scoreOverlayMenu(self, self.game.players);
+        self.scoreOverlay.setGeometry(self.rect());
+        self.scoreOverlay.raise_();
+        self.scoreOverlay.show();
 
     def updateEndTurnButton(self):
         self.endTurnButton.setVisible(self.game.currentPlayer is self.game.players[0]);
@@ -251,6 +287,131 @@ class gameplayScene(QtWidgets.QWidget):
             QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
             QtCore.Qt.TransformationMode.SmoothTransformation
         ));
+
+class scoreOverlayMenu(QtWidgets.QWidget):
+    def __init__(self, parent, players):
+        super().__init__(parent);
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_StyledBackground, True);
+        self.setStyleSheet("background-color: rgba(0, 0, 0, 150);");
+
+        panel = QtWidgets.QWidget();
+        panelWidth = max(280, min(900, parent.width() - 80));
+        panelHeight = max(260, min(560, parent.height() - 80));
+        panel.setFixedSize(panelWidth, panelHeight);
+        panel.setStyleSheet(
+            "QWidget#scorePanel { "
+            "background-color: rgba(20, 38, 29, 245); "
+            "border: 2px solid #d9c98b; "
+            "border-radius: 8px; "
+            "color: white; "
+            "} "
+            "QLabel { background: transparent; border: none; color: white; }"
+        );
+        panel.setObjectName("scorePanel");
+
+        panelLayout = QtWidgets.QVBoxLayout(panel);
+        panelLayout.setContentsMargins(16, 12, 16, 12);
+        panelLayout.setSpacing(8);
+
+        title = QtWidgets.QLabel("Scoreboard");
+        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #f1d985;");
+        title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+        panelLayout.addWidget(title);
+
+        subtitle = QtWidgets.QLabel("Prize cards collected (6 to win)");
+        subtitle.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+        subtitle.setStyleSheet("color: #d5dfd4;");
+        panelLayout.addWidget(subtitle);
+
+        scoreList = QtWidgets.QWidget();
+        scoreListLayout = QtWidgets.QVBoxLayout(scoreList);
+        scoreListLayout.setContentsMargins(0, 0, 0, 0);
+        scoreListLayout.setSpacing(8);
+
+        for player in players:
+            playerPanel = QtWidgets.QFrame();
+            playerPanel.setStyleSheet(
+                "QFrame { "
+                "background-color: rgba(44, 68, 52, 230); "
+                "border: 1px solid #71896e; "
+                "border-radius: 5px; "
+                "} "
+                "QLabel { color: white; border: none; background: transparent; }"
+            );
+            playerPanelLayout = QtWidgets.QVBoxLayout(playerPanel);
+            playerPanelLayout.setContentsMargins(10, 7, 10, 7);
+            playerPanelLayout.setSpacing(5);
+
+            playerType = "You" if not player.isBot else "Bot";
+            scoreLabel = QtWidgets.QLabel(
+                f"{player.name} ({playerType})    "
+                f"Score: {len(player.prizeCards)} / 6"
+            );
+            scoreLabel.setStyleSheet(
+                "font-size: 15px; font-weight: bold; color: #f1d985;"
+            );
+            playerPanelLayout.addWidget(scoreLabel);
+
+            if player.prizeCards:
+                cardRow = QtWidgets.QHBoxLayout();
+                cardRow.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft);
+                cardRow.setSpacing(8);
+                for card in player.prizeCards:
+                    cardLabel = visualHand.cardImageLabel(card);
+                    cardLabel.setFixedSize(82, 115);
+                    cardLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
+                    cardLabel.setCursor(QtCore.Qt.CursorShape.PointingHandCursor);
+                    cardLabel.setToolTip(f"{card.name} - click to view");
+                    cardLabel.setStyleSheet(
+                        "QLabel { border: 1px solid #d9c98b; border-radius: 3px; }"
+                    );
+                    imagePath = Path(card.image);
+                    if not imagePath.is_absolute():
+                        imagePath = Path(__file__).resolve().parents[2] / imagePath;
+                    pixmap = QtGui.QPixmap(str(imagePath));
+                    if pixmap.isNull():
+                        cardLabel.setText(card.name);
+                    else:
+                        cardLabel.setPixmap(pixmap.scaled(
+                            cardLabel.size(),
+                            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                            QtCore.Qt.TransformationMode.SmoothTransformation
+                        ));
+                    cardLabel.clicked.connect(parent.showPassiveCard);
+                    cardRow.addWidget(cardLabel);
+                playerPanelLayout.addLayout(cardRow);
+            else:
+                noCardsLabel = QtWidgets.QLabel("No prize cards yet");
+                noCardsLabel.setStyleSheet("color: #c8d2c7; font-style: italic;");
+                playerPanelLayout.addWidget(noCardsLabel);
+
+            scoreListLayout.addWidget(playerPanel);
+
+        scoreListLayout.addStretch();
+        scrollArea = QtWidgets.QScrollArea();
+        scrollArea.setWidgetResizable(True);
+        scrollArea.setFrameShape(QtWidgets.QFrame.Shape.NoFrame);
+        scrollArea.setStyleSheet(
+            "QScrollArea { background: transparent; border: none; }"
+            "QScrollBar:vertical { background: #20372a; width: 10px; }"
+            "QScrollBar::handle:vertical { background: #71896e; border-radius: 4px; }"
+        );
+        scrollArea.setWidget(scoreList);
+        panelLayout.addWidget(scrollArea, 1);
+
+        closeButton = QtWidgets.QPushButton("Close");
+        closeButton.setStyleSheet(
+            "QPushButton { "
+            "background-color: #34533d; color: white; "
+            "border: 1px solid #d9c98b; border-radius: 4px; padding: 6px 18px; "
+            "} "
+            "QPushButton:hover { background-color: #456b50; }"
+        );
+        closeButton.clicked.connect(self.close);
+        panelLayout.addWidget(closeButton, 0, QtCore.Qt.AlignmentFlag.AlignRight);
+
+        overlayLayout = QtWidgets.QVBoxLayout(self);
+        overlayLayout.addWidget(panel, 0, QtCore.Qt.AlignmentFlag.AlignCenter);
 
 #Creating play area
 class playArea:
