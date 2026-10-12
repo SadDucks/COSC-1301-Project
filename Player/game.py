@@ -29,6 +29,7 @@ class game:
         self.deck = deck();
         self.prizeCards = tuple(card_list.prizeCardList);
         self.discardPile = [];
+        self.winner = None;
         self.round = 1 # Round Number
 
         for i in range(totalPlayers):
@@ -75,7 +76,21 @@ class game:
         print(f"{winningPlayer.name} earned prize card: {prize.name}");
         return prize;
 
+    def checkWinCondition(self):
+        if self.winner is None:
+            self.winner = next(
+                (
+                    currentPlayer for currentPlayer in self.players
+                    if len(currentPlayer.prizeCards) >= 6
+                ),
+                None
+            );
+        return self.winner;
+
     def nextTurn(self):
+        if self.checkWinCondition() is not None:
+            return;
+
         currentPlayerTurn = self.players.index(self.currentPlayer); # Current Turn
         nextPlayerTurn = (currentPlayerTurn + 1) % len(self.players); # Next players turn, repeats after last player
 
@@ -93,8 +108,10 @@ class game:
         print("Energy:", self.currentPlayer.energy);
 
         print("Next player turn:", self.players[nextPlayerTurn].name)
+        self.checkWinCondition();
         
         self.currentPlayer = self.players[nextPlayerTurn]; # Changes to next player
+
 
 
 if __name__ == "__main__":

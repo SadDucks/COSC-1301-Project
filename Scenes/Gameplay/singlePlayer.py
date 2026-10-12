@@ -177,13 +177,30 @@ class gameplayScene(QtWidgets.QWidget):
         if self.passiveCardPreview is not None:
             self.passiveCardPreview.hide();
         self.game.nextTurn();
+        if self.showWinnerIfAny():
+            return;
         self.botTurnHandler.handleBotTurn();
+
+    def showWinnerIfAny(self):
+        winner = self.game.checkWinCondition();
+        if winner is None:
+            return False;
+
+        self.playerActions.cancelAttackSelection();
+        self.endTurnButton.setEnabled(False);
+        QtWidgets.QMessageBox.information(
+            self,
+            "Game Over",
+            f"{winner.name} wins with {len(winner.prizeCards)} prize cards!"
+        );
+        return True;
 
     def updateEndTurnButton(self):
         self.endTurnButton.setVisible(self.game.currentPlayer is self.game.players[0]);
         self.endTurnButton.setEnabled(
             self.game.currentPlayer is self.game.players[0]
             and not self.botTurnHandler.botTurnInProgress
+            and self.game.winner is None
         );
 
     def showActiveCard(self, card):
@@ -882,4 +899,6 @@ class handleBotTurn(QtCore.QObject):
         );
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         self.game.nextTurn();
+        if self.scene.showWinnerIfAny():
+            return;
         self.handleBotTurn();
