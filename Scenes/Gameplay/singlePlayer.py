@@ -202,10 +202,23 @@ class gameplayScene(QtWidgets.QWidget):
         self.playerActions.cancelAttackSelection();
         if self.passiveCardPreview is not None:
             self.passiveCardPreview.hide();
-        self.game.nextTurn();
+
+        drawnCard = self.game.nextTurn();
+        self.playDrawSound(drawnCard);
+
         if self.showWinnerIfAny():
             return;
         self.botTurnHandler.handleBotTurn();
+
+    def playDrawSound(self, drawnCard):
+        if drawnCard is None:
+            return;
+
+        self.cardDrawSound.stop();
+        self.cardDrawSound.setPosition(0);
+        self.cardDrawSound.play();
+        self.playAreas.showHand(self.game.players);
+        self.playAreas.handWidgets[1].cardSelected.connect(self.showPassiveCard);
 
     def showWinnerIfAny(self):
         winner = self.game.checkWinCondition();
@@ -1058,8 +1071,10 @@ class handleBotTurn(QtCore.QObject):
         self.scene.playAreas.handWidgets[1].cardSelected.connect(
             self.scene.showPassiveCard
         );
+
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
-        self.game.nextTurn();
+        drawnCard = self.game.nextTurn();
+        self.scene.playDrawSound(drawnCard);
         if self.scene.showWinnerIfAny():
             return;
         self.handleBotTurn();

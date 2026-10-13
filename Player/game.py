@@ -11,6 +11,8 @@ from Deck.deck import deck;
 from Deck import card_list;
 
 class game:
+    handSizeLimit = 8;
+
     def __init__(self, numberOfPlayers, numberOfBots=None): # Total Players and how many are Bots
         numberOfPlayers = max(1, int(numberOfPlayers));
 
@@ -49,6 +51,16 @@ class game:
             for i in range(1): # Cards per Player
                 card = self.deck.drawCard();
                 player.hand.addCard(card);
+
+    def drawCardForPlayer(self, currentPlayer):
+        if currentPlayer not in self.players:
+            raise ValueError("The player must belong to this game");
+        if len(currentPlayer.hand.cards) >= self.handSizeLimit or not self.deck.cards:
+            return None;
+
+        card = self.deck.drawCard();
+        currentPlayer.hand.addCard(card);
+        return card;
 
     def resolveActiveCardDefeat(self, winningPlayer, defeatedPlayer):
         if winningPlayer not in self.players or defeatedPlayer not in self.players:
@@ -103,6 +115,8 @@ class game:
         if currentPlayerTurn == len(self.players) - 1:  # Increases round number after last player
             self.round += 1;
 
+        drawnCard = self.drawCardForPlayer(self.currentPlayer);
+
         print(self.currentPlayer.name);
 
         print("Energy:", self.currentPlayer.energy);
@@ -111,6 +125,7 @@ class game:
         self.checkWinCondition();
         
         self.currentPlayer = self.players[nextPlayerTurn]; # Changes to next player
+        return drawnCard;
 
 
 
