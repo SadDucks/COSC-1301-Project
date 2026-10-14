@@ -76,6 +76,7 @@ class bot:
         elif points >= 3:
             score += 10;
 
+        print(f"Evaluating target {target.name} (Health: {target.currentHealth}, Points: {points}) against attacker {attacker.name} (Attack: {attacker.attack}) => Score: {score}");
         return score;
 
     def takeTurn(self):
