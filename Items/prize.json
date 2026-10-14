@@ -1,3 +1,9 @@
 [
-    { "id": 1, "name": "prize1", "image": "filepath"}
+    { "id": 1, "name": "Hylain Shield", "image": "Assets/prize/Hylain_Shield.png"},
+    { "id": 2, "name": "Master Sword", "image": "Assets/prize/Master_Sword.png"},
+    { "id": 3, "name": "Ocorina", "image": "Assets/prize/Ocorina.png"},
+    { "id": 4, "name": "Triforce", "image": "Assets/prize/Triforce.png"}
+    
 ]
+
+ 

@@ -1,7 +1,19 @@
 [
-    { "id": 1, "name": "Gannondorf", "image": "Assets/attack/Ganondorf.png", "attack": 15, "energy": 5, "health": 50},
-    { "id": 2, "name": "Link", "image": "filepath", "attack": 15, "energy": 5, "health": 50},
-    { "id": 3, "name": "Zelda", "image": "filepath", "attack": 20, "energy": 5, "health": 25},
-    { "id": 4, "name": "Calamo", "image": "filepath", "attack": 5, "energy": 5, "health": 10},
-    { "id": 5, "name": "Skull Kid", "image": "filepath", "attack": 10, "energy": 5, "health": 20}
+    { "id": 1, "name": "Gannondorf", "image": "Assets/attack/Ganondorf.png", "attack": 25, "energy": 25, "health": 50},
+    { "id": 2, "name": "Link", "image": "Assets/attack/Link.png", "attack": 28, "energy": 28, "health": 50},
+    { "id": 3, "name": "Zelda", "image": "Assets/attack/Zelda.png", "attack": 25, "energy": 25, "health": 25},
+    { "id": 4, "name": "Calamo", "image": "Assets/attack/Calamo.png", "attack": 12, "energy": 12, "health": 10},
+    { "id": 5, "name": "Skull Kid", "image": "Assets/attack/SkullKid.png", "attack": 15, "energy": 15, "health": 20},
+    { "id": 6, "name": "Bokoblin", "image": "Assets/attack/Bokoblin.png", "attack": 5, "energy": 5, "health": 15},
+    { "id": 7, "name": "Daruk", "image": "Assets/attack/Daruk.png", "attack": 15, "energy": 15, "health": 40},
+    { "id": 8, "name": "Mipha", "image": "Assets/attack/Mipha.png", "attack": 23, "energy": 23, "health": 30},
+    { "id": 9, "name": "Revali", "image": "Assets/attack/Revali.png", "attack": 20, "energy": 20, "health": 25},
+    { "id": 10, "name": "Urbosa", "image": "Assets/attack/Urbosa.png", "attack": 18, "energy": 18, "health": 35},
+    { "id": 11, "name": "Ghirahim", "image": "Assets/attack/Ghirahim.png", "attack": 15, "energy": 15, "health": 20},
+    { "id": 12, "name": "Groose", "image": "Assets/attack/Groose.png", "attack": 3, "energy": 3, "health": 10},
+    { "id": 13, "name": "Sheik", "image": "Assets/attack/Sheik.png", "attack": 18, "energy": 18, "health": 15},
+    { "id": 14, "name": "Impa", "image": "Assets/attack/Impa.png", "attack": 20, "energy": 20, "health": 18},
+    { "id": 15, "name": "Midna", "image": "Assets/attack/Midna.png", "attack": 13, "energy": 13, "health": 13},
+    { "id": 16, "name": "Terakko", "image": "Assets/attack/Terakko.png", "attack": 6, "energy": 6, "health": 10},
+    { "id": 17, "name": "Volvagia", "image": "Assets/attack/Volvagia.png", "attack": 22, "energy": 22, "health": 25}
 ]
