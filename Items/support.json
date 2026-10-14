@@ -7,7 +7,7 @@
     { "id": 6, "name": "Firece Deity Mask", "image": "Assets/support/Firece Deity Mask.png", "healing": 0, "energy": 50},
     { "id": 7, "name": "Great Fairy's Tears", "image": "Assets/support/Great Fairy's Tears.png", "healing": 0, "energy": 25},
     { "id": 8, "name": "Lens of Truth", "image": "Assets/support/Lens of Truth.png", "healing": 0, "energy": 50},
-    { "id": 9, "name": "Mighty Elixir", "image": "Assets/support/Mighty Elixir.png", "healing": 10, "energy": 0},
+    { "id": 9, "name": "Mighty Elixer", "image": "Assets/support/Mighty Elixer.png", "healing": 10, "energy": 0},
     { "id": 10, "name": "Paraglider", "image": "Assets/support/Paraglider.png", "healing": 0, "energy": 50},
     { "id": 11, "name": "The Blood Moon", "image": "Assets/support/The Blood Moon.png", "healing": 0, "energy": 25}
     
