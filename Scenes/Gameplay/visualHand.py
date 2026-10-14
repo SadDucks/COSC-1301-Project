@@ -30,7 +30,13 @@ class visualHand(QtWidgets.QWidget):
 		self.card_widgets = [];
 		self.card_sources = [];
 		self.card_size = QtCore.QSize(70, 98);
-		self.layout = QtWidgets.QHBoxLayout(self);
+		if rotation == 90:
+			self.layout = QtWidgets.QVBoxLayout(self);
+		elif rotation == 270:
+			self.layout = QtWidgets.QVBoxLayout(self);
+			self.layout.setDirection(QtWidgets.QBoxLayout.Direction.BottomToTop);
+		else:
+			self.layout = QtWidgets.QHBoxLayout(self);
 		self.layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
 		self.layout.setContentsMargins(0, 0, 0, 0);
 		self.layout.setSpacing(0);

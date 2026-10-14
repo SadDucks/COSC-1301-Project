@@ -504,10 +504,19 @@ class playArea:
 
     def resizeHands(self):
         for playerNumber, handWidget in self.handWidgets.items():
-            baseWidth, baseHeight = (66, 92) if playerNumber in (3, 4) else (70, 98);
+            if playerNumber in (3, 4):
+                handSize = len(handWidget.card_widgets);
+                baseWidth = min(
+                    round(66 * self.scale),
+                    max(1, int(300 * self.scale / max(1, handSize)))
+                );
+                baseHeight = round(92 * self.scale);
+            else:
+                baseWidth = round(70 * self.scale);
+                baseHeight = round(98 * self.scale);
             handWidget.setCardSize(QtCore.QSize(
-                max(1, round(baseWidth * self.scale)),
-                max(1, round(baseHeight * self.scale))
+                max(1, baseWidth),
+                max(1, baseHeight)
             ));
 
     def showActiveCards(self, players, parent):
