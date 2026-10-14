@@ -2,7 +2,7 @@ import sys;
 from pathlib import Path;
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]));
 
 from Deck import Combat;
 
@@ -40,15 +40,44 @@ class bot:
             self.player.activeCard = self.player.bench.pop(0);
             self.player.activeCard.isActive = True;
 
-    def chooseTarget(self):
-        
+    def chooseTarget(self, attacker):
         opponents = self.getOpponents()
 
-        for opponent in opponents:
-            if opponent.activeCard is not None:
-                return opponent.activeCard
+        bestTarget = None;
+        bestScore = -1;
 
-        return None
+        for opponent in opponents:
+            target = opponent.activeCard;
+
+            if target is not None:
+                score = self.evaluateTarget(attacker, target, opponent);
+
+                if score > bestScore:
+                    bestScore = score;
+                    bestTarget = target;
+
+        return bestTarget;
+
+    def evaluateTarget(self, attacker, target, opponent):
+        score = 0;
+
+        if attacker.attack >= target.currentHealth:
+            score += 100;
+
+        wastedDamage = max(0, attacker.attack - target.currentHealth);
+        score -= wastedDamage // 2;
+
+        points = len(opponent.prizeCards)
+
+        if points >= 7:
+            score += 50;
+        elif points >= 5:
+            score += 25;
+        elif points >= 3:
+            score += 10;
+
+        print(f"Evaluating target {target.name} (Health: {target.currentHealth}, Points: {points}) against attacker {attacker.name} (Attack: {attacker.attack}) => Score: {score}");
+        return score;
 
     def takeTurn(self):
 
@@ -71,7 +100,8 @@ class bot:
             print("No active card available, moving on.");
             return;
 
-        target = self.chooseTarget();
+        target = self.chooseTarget(attacker);
+
         if target is None:
             print("No target"); #TEST
             return;
