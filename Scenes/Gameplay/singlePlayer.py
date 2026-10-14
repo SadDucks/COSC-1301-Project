@@ -232,6 +232,12 @@ class gameplayScene(QtWidgets.QWidget):
             "Game Over",
             f"{winner.name} wins with {len(winner.prizeCards)} prize cards!"
         );
+        if self.windowRef is not None:
+            from Scenes.menu import mainMenu;
+            QtCore.QTimer.singleShot(
+                0,
+                lambda: self.windowRef.changeScene(mainMenu)
+            );
         return True;
 
     def showScores(self):
@@ -502,6 +508,36 @@ class playArea:
             font.setPixelSize(max(1, round(32 * scale)));
             self.energyLabel.setFont(font);
 
+    def flashEnergyAttribute(self):
+        if self.energyLabel is None:
+            return;
+
+        timer = getattr(self, "energyFlashTimer", None);
+        if timer is not None:
+            timer.stop();
+            timer.deleteLater();
+
+        originalStyle = self.energyLabel.styleSheet();
+        flashStyles = (
+            "QLabel { color: #ff3333; border: none; }",
+            originalStyle
+        );
+        flashCount = 0;
+        timer = QtCore.QTimer(self.energyLabel);
+        timer.setInterval(200);
+
+        def flash():
+            nonlocal flashCount;
+            self.energyLabel.setStyleSheet(flashStyles[flashCount % 2]);
+            flashCount += 1;
+            if flashCount == 8:
+                timer.stop();
+                self.energyLabel.setStyleSheet(originalStyle);
+
+        timer.timeout.connect(flash);
+        self.energyFlashTimer = timer;
+        timer.start();
+
     def resizeHands(self):
         for playerNumber, handWidget in self.handWidgets.items():
             if playerNumber in (3, 4):
@@ -635,10 +671,14 @@ class playArea:
 
         if healthLabel.parentWidget() is not parent:
             healthLabel.setParent(parent);
-        healthLabel.setText(f"HP {currentHealth}/{maximumHealth}");
+        staminaCost = getattr(card, "energy", None);
+        healthLabel.setText(
+            f"HP {currentHealth}/{maximumHealth}"
+            + (f"\nStamina: {staminaCost}" if staminaCost is not None else "")
+        );
         healthLabel.setFixedSize(
-            max(70, round(88 * self.scale)),
-            max(20, round(24 * self.scale))
+            max(76, round(100 * self.scale)),
+            max(30, round(38 * self.scale))
         );
         font = healthLabel.font();
         font.setPixelSize(max(8, round(12 * self.scale)));
@@ -957,6 +997,7 @@ class playerActions(QtCore.QObject):
         if not isinstance(attacker, attackCard) or self.game.currentPlayer.attacked:
             return;
         if self.game.currentPlayer.energy < attacker.energy:
+            self.scene.playAreas.flashEnergyAttribute();
             return;
 
         targets = [
@@ -1000,6 +1041,12 @@ class playerActions(QtCore.QObject):
             or targetCard.currentHealth <= 0
             or attackerPlayer.energy < attacker.energy
         ):
+            if (
+                attackerPlayer is self.game.players[0]
+                and isinstance(attacker, attackCard)
+                and attackerPlayer.energy < attacker.energy
+            ):
+                self.scene.playAreas.flashEnergyAttribute();
             return;
 
         attackerPlayer.energy -= attacker.energy;
