@@ -15,5 +15,26 @@
     { "id": 14, "name": "Impa", "image": "Assets/attack/Impa.png", "attack": 20, "energy": 20, "health": 18},
     { "id": 15, "name": "Midna", "image": "Assets/attack/Midna.png", "attack": 13, "energy": 13, "health": 13},
     { "id": 16, "name": "Terakko", "image": "Assets/attack/Terakko.png", "attack": 6, "energy": 6, "health": 10},
-    { "id": 17, "name": "Volvagia", "image": "Assets/attack/Volvagia.png", "attack": 22, "energy": 22, "health": 25}
+    { "id": 17, "name": "Volvagia", "image": "Assets/attack/Volvagia.png", "attack": 22, "energy": 22, "health": 25},
+    { "id": 18, "name": "Agahnim", "image": "Assets/attack/Agahnim.png", "attack": 8, "energy": 8, "health": 25},
+    { "id": 19, "name": "Dark Link", "image": "Assets/attack/Dark Link.png", "attack": 14, "energy": 14, "health": 30},
+    { "id": 20, "name": "Astor", "image": "Assets/attack/Astor.png", "attack": 12, "energy": 12, "health": 20},
+    { "id": 21, "name": "Cucco", "image": "Assets/attack/Cucco.png", "attack": 30, "energy": 30, "health": 50},
+    { "id": 22, "name": "Dead Hand", "image": "Assets/attack/Dead Hand.png", "attack": 6, "energy": 6, "health": 12},
+    { "id": 23, "name": "Fi", "image": "Assets/attack/Fi.png", "attack": 15, "energy": 15, "health": 30},
+    { "id": 24, "name": "Princess Ruto", "image": "Assets/attack/Princess Ruto.png", "attack": 15, "energy": 15, "health": 35},
+    { "id": 25, "name": "Sidon", "image": "Assets/attack/Sidon.png", "attack": 18, "energy": 18, "health": 25},
+    { "id": 26, "name": "Tingle", "image": "Assets/attack/Tingle.png", "attack": 1, "energy": 1, "health": 10},
+    { "id": 27, "name": "Vaati", "image": "Assets/attack/Vaati.png", "attack": 6, "energy": 6, "health": 15},
+    { "id": 28, "name": "Wind Wish", "image": "Assets/attack/Wind Wish.png", "attack": 20, "energy": 20, "health": 30},
+    { "id": 29, "name": "Zant", "image": "Assets/attack/Zant.png", "attack": 7, "energy": 7, "health": 20},
+    { "id": 30, "name": "Master Kohga", "image": "Assets/attack/Master Kohga.png", "attack": 3, "energy": 3, "health": 15},
+    { "id": 31, "name": "Yuga", "image": "Assets/attack/Yuga.png", "attack": 8, "energy": 8, "health": 20},
+    { "id": 32, "name": "Stallord", "image": "Assets/attack/Stallord.png", "attack": 10, "energy": 10, "health": 20},
+    { "id": 33, "name": "Mikau", "image": "Assets/attack/Mikau.png", "attack": 5, "energy": 5, "health": 15},
+    { "id": 34, "name": "Molduga", "image": "Assets/attack/Molduga.png", "attack": 18, "energy": 18, "health": 40},
+    { "id": 35, "name": "Dark Hammer", "image": "Assets/attack/Dark Hammer.png", "attack": 5, "energy": 5, "health": 20},
+    { "id": 36, "name": "Sooga", "image": "Assets/attack/Sooga.png", "attack": 13, "energy": 13, "health": 30},
+    { "id": 37, "name": "Rauru", "image": "Assets/attack/Rauru.png", "attack": 14, "energy": 14, "health": 35}
+    
 ]
