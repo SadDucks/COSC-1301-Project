@@ -22,5 +22,5 @@
     { "id": 21, "name": "Traveler's Bow", "image": "Assets/support/Traveler's Bow.png", "healing": 0, "energy": 0, "attack_boost": 1},
     { "id": 22, "name": "Rupee", "image": "Assets/support/Rupee.png", "healing": 10, "energy": 0},
     { "id": 23, "name": "Milk", "image": "Assets/support/Milk.png", "healing": 5, "energy": 0},
-    { "id": 24, "name": "The Wind Maker", "image": "Assets/support/The Wind Maker.png", "healing": 0, "energy": 0, "defense_boost": 10}
+    { "id": 24, "name": "The Wind Waker", "image": "Assets/support/The Wind Waker.png", "healing": 0, "energy": 0, "defense_boost": 10}
 ]
