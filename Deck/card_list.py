@@ -1,5 +1,6 @@
 from Deck import cards;
 import json;
+from pathlib import Path;
 
 # Creates Lists for each Card Type
 
@@ -9,13 +10,15 @@ prizeCardList = [];
 
 # Pulls data from Json Database
 
-with open("items/attack.json", "r") as attack:
+itemsDirectory = Path(__file__).resolve().parents[1] / "Items";
+
+with open(itemsDirectory / "attack.json", "r") as attack:
     attackCards = json.load(attack);
 
-with open("items/support.json", "r") as support:
+with open(itemsDirectory / "support.json", "r") as support:
     supportCards = json.load(support);
 
-with open("items/prize.json", "r") as prize:
+with open(itemsDirectory / "prize.json", "r") as prize:
     prizeCards = json.load(prize);
 
 
