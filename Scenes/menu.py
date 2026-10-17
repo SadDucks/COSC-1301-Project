@@ -5,7 +5,6 @@ from PySide6 import QtGui;
 import re;
 
 import Scenes.windowManager as windowManager;
-from Scenes.Gameplay import play as play;
 
 class mainMenu(QtWidgets.QWidget):
 
@@ -35,17 +34,17 @@ class mainMenu(QtWidgets.QWidget):
         self.mediaPlayer.play();
 
         #Game Title
-        title = QtWidgets.QLabel("COSC 1301 Group Project");
+        title = QtWidgets.QLabel("Chronicles of the Triforce");
         title.setObjectName("title");
         title.setStyleSheet("font-size: 24px; font-weight: bold;");
         title.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignHCenter);
         title.show();
 
         #Play Button
-        play = AnimatedButton("Play", buttonStyle);
-        play.setObjectName("play");
-        play.clicked.connect(self.startGame);
-        play.show();
+        singlePlayer = AnimatedButton("Single Player", buttonStyle);
+        singlePlayer.setObjectName("singlePlayer");
+        singlePlayer.clicked.connect(self.startGame);
+        singlePlayer.show();
 
         #Settings Button
         settings = AnimatedButton("Settings", buttonStyle);
@@ -66,7 +65,7 @@ class mainMenu(QtWidgets.QWidget):
         layout.addWidget(title);
 
         #Adding buttons to layout
-        layout.addWidget(play);
+        layout.addWidget(singlePlayer);
         layout.addWidget(settings);
         layout.addWidget(quit);
 
@@ -75,7 +74,8 @@ class mainMenu(QtWidgets.QWidget):
     #Button Functionality
     def startGame(self):
         if self.windowRef is not None:
-            self.windowRef.changeScene(play.gameplayScene);
+            from Scenes.Gameplay import singlePlayer;
+            self.windowRef.changeScene(singlePlayer.gameplayScene);
         else:
             print("No change window found");
 
