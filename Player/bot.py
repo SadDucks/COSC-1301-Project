@@ -87,7 +87,7 @@ class bot:
             activeCard = self.player.activeCard;
 
             if card.effectType == "healing":
-                if activeCard is None or activeCard.currentHealth >= active.health:
+                if activeCard is None or activeCard.currentHealth >= activeCard.health:
                     continue;
 
             elif card.effectType == ("damage_boost", "shield"):
