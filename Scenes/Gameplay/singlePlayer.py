@@ -874,8 +874,8 @@ class showPassiveCard(QtWidgets.QFrame):
                 useButton = QtWidgets.QPushButton("Use");
                 self.actions.addWidget(useButton, 1);
                 useButton.clicked.connect(
-                    lambda: (
-                        self.parentWidget().playerActions.useSupportCard(card)
+                    lambda checked=False, selectedCard=card: (
+                        self.parentWidget().playerActions.useSupportCard(selectedCard)
                     )
                 );
 
@@ -1084,7 +1084,7 @@ class playerActions(QtCore.QObject):
                 f"Could not remove {selectedCard.name} from the displayed hand"
             );
 
-        selectedCard.applyEffect(currentPlayer);
+        currentPlayer.applySupportCard(selectedCard);
         self.scene.playAreas.energyLabel.setText(str(currentPlayer.getEnergy()));
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         if self.scene.passiveCardPreview is not None:

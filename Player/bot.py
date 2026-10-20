@@ -79,6 +79,25 @@ class bot:
         print(f"Evaluating target {target.name} (Health: {target.currentHealth}, Points: {points}) against attacker {attacker.name} (Attack: {attacker.attack}) => Score: {score}");
         return score;
 
+    def playSupportCards(self):
+        for card in self.player.hand.cards.copy():
+            if not hasattr(card, "effectType"):
+                continue;
+
+            activeCard = self.player.activeCard;
+
+            if card.effectType == "healing":
+                if activeCard is None or activeCard.currentHealth >= active.health:
+                    continue;
+
+            elif card.effectType == ("damage_boost", "shield"):
+                if activeCard is None:
+                    continue
+
+            Combat.applySupport(card,self.player);
+            self.player.hand.removeCard(card);
+            print("Bot played support card: ", card.name);
+
     def takeTurn(self):
 
         print("TEST\n\n\n")#TEST
@@ -99,6 +118,9 @@ class bot:
         if attacker is None:
             print("No active card available, moving on.");
             return;
+
+        self.playSupportCards();
+        attacker = self.player.activeCard;
 
         target = self.chooseTarget(attacker);
 

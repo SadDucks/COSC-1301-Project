@@ -40,8 +40,7 @@ for card in supportCards:
         card["id"],
         card["name"],
         card["image"],
-        card["healing"],
-        card["energy"]
+        card["effects"]
     );
     supportCardList.append(newCard);
 
