@@ -1052,9 +1052,12 @@ class playerActions(QtCore.QObject):
         attackerPlayer.energy -= attacker.energy;
         damage = Combat.attack(attacker, targetCard);
         attackerPlayer.attacked = True;
+
         if targetCard.currentHealth <= 0:
             targetCard.currentHealth = 0;
+        
         Combat.reportAttack(attackerPlayer, attacker, targetCard, damage);
+        
         if targetCard.currentHealth == 0:
             self.game.resolveActiveCardDefeat(attackerPlayer, targetPlayer);
 
@@ -1063,6 +1066,7 @@ class playerActions(QtCore.QObject):
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         if self.scene.passiveCardPreview is not None:
             self.scene.passiveCardPreview.hide();
+        self.scene.endTurn();
 
     # Support card related use
     def useSupportCard(self, selectedCard):
