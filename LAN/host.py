@@ -24,17 +24,21 @@ class Host(QtCore.QObject):
 
 	def start(self):
 		address = QtNetwork.QHostAddress(self.host)
+		print(f"[LAN host] Opening TCP listener on {self.host}:{self.port}...")
 		
 		if not self.server.listen(address, self.port):
+			print(f"[LAN host] Failed to open TCP listener: {self.server.errorString()}")
 			raise OSError(self.server.errorString())
 		
 		self.port = self.server.serverPort()
+		print(f"[LAN host] TCP listener ready on {self.host}:{self.port}")
 		return self.server.serverAddress().toString(), self.port
 
 	def _accept_clients(self):
 		while self.server.hasPendingConnections():
 			client_socket = self.server.nextPendingConnection()
 			address = (client_socket.peerAddress().toString(), client_socket.peerPort())
+			print(f"[LAN host] Accepted connection from {address[0]}:{address[1]}")
 			self.clients[client_socket] = address
 			self.buffers[client_socket] = bytearray()
             
@@ -69,6 +73,7 @@ class Host(QtCore.QObject):
 		self.buffers.pop(client_socket, None)
 		if address is None:
 			return
+		print(f"[LAN host] Client disconnected: {address[0]}:{address[1]}")
 		self.clientDisconnected.emit(address)
 		if self.on_disconnect:
 			self.on_disconnect(address)
@@ -84,6 +89,7 @@ class Host(QtCore.QObject):
 		return sent
 
 	def close(self):
+		print(f"[LAN host] Closing TCP listener on {self.host}:{self.port}")
 		self.server.close()
 		
 		for client in list(self.clients):

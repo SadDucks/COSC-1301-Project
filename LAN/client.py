@@ -23,6 +23,7 @@ class Client(QtCore.QObject):
 		self.socket.disconnected.connect(self._handle_disconnected)
 
 	def connect(self):
+		print(f"[LAN client] Connecting to {self.host}:{self.port}...")
 		self.socket.connectToHost(self.host, self.port)
 
 	def _read_messages(self):
@@ -41,6 +42,7 @@ class Client(QtCore.QObject):
 				self.on_message(message)
 
 	def _handle_disconnected(self):
+		print(f"[LAN client] Disconnected from {self.host}:{self.port}")
 		self.buffer.clear()
 		self.disconnected.emit()
 		if self.on_disconnect:
@@ -50,9 +52,11 @@ class Client(QtCore.QObject):
 		if self.socket.state() != QtNetwork.QAbstractSocket.SocketState.ConnectedState:
 			raise ConnectionError("Client is not connected")
 
+		print(f"[LAN client] Sending {message.get('type', 'message')} message")
 		payload = json.dumps(message).encode("utf-8") + b"\n"
 		if self.socket.write(payload) < 0:
 			raise ConnectionError(self.socket.errorString())
 
 	def close(self):
+		print(f"[LAN client] Closing connection to {self.host}:{self.port}")
 		self.socket.abort()
