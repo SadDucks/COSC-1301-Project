@@ -38,7 +38,9 @@ class gameplayScene(QtWidgets.QWidget):
         self.backgroundMusic.setLoops(QtMultimedia.QMediaPlayer.Loops.Infinite);
         self.backgroundMusic.play();
 
-        #Card Draw Sound
+        #Card Draw Sound & card back
+
+        self.cardBack = QtGui.QPixmap("Assets/gamePlayScene/cardBack.png");
 
         self.cardDrawSound = QtMultimedia.QMediaPlayer(self);
         self.cardDrawSound.setAudioOutput(self.soundEffectsOutput);
@@ -130,7 +132,7 @@ class gameplayScene(QtWidgets.QWidget):
         self.setLayout(self.playerLayout);
         self.playAreas.resize(self.size());
 
-        self.playAreas.showHand(self.game.players);
+        self.playAreas.showHand(self.game.players, self.cardBack);
         self.playAreas.handWidgets[1].cardSelected.connect(self.showPassiveCard);
         self.playAreas.showActiveCards(self.game.players, self);
         self.passiveCardPreview = None;
@@ -217,7 +219,7 @@ class gameplayScene(QtWidgets.QWidget):
         self.cardDrawSound.stop();
         self.cardDrawSound.setPosition(0);
         self.cardDrawSound.play();
-        self.playAreas.showHand(self.game.players);
+        self.playAreas.showHand(self.game.players, self.cardBack);
         self.playAreas.handWidgets[1].cardSelected.connect(self.showPassiveCard);
 
     def showWinnerIfAny(self):
@@ -232,12 +234,6 @@ class gameplayScene(QtWidgets.QWidget):
             "Game Over",
             f"{winner.name} wins with {len(winner.prizeCards)} prize cards!"
         );
-        if self.windowRef is not None:
-            from Scenes.menu import mainMenu;
-            QtCore.QTimer.singleShot(
-                0,
-                lambda: self.windowRef.changeScene(mainMenu)
-            );
         return True;
 
     def showScores(self):
@@ -508,51 +504,12 @@ class playArea:
             font.setPixelSize(max(1, round(32 * scale)));
             self.energyLabel.setFont(font);
 
-    def flashEnergyAttribute(self):
-        if self.energyLabel is None:
-            return;
-
-        timer = getattr(self, "energyFlashTimer", None);
-        if timer is not None:
-            timer.stop();
-            timer.deleteLater();
-
-        originalStyle = self.energyLabel.styleSheet();
-        flashStyles = (
-            "QLabel { color: #ff3333; border: none; }",
-            originalStyle
-        );
-        flashCount = 0;
-        timer = QtCore.QTimer(self.energyLabel);
-        timer.setInterval(200);
-
-        def flash():
-            nonlocal flashCount;
-            self.energyLabel.setStyleSheet(flashStyles[flashCount % 2]);
-            flashCount += 1;
-            if flashCount == 8:
-                timer.stop();
-                self.energyLabel.setStyleSheet(originalStyle);
-
-        timer.timeout.connect(flash);
-        self.energyFlashTimer = timer;
-        timer.start();
-
     def resizeHands(self):
         for playerNumber, handWidget in self.handWidgets.items():
-            if playerNumber in (3, 4):
-                handSize = len(handWidget.card_widgets);
-                baseWidth = min(
-                    round(66 * self.scale),
-                    max(1, int(300 * self.scale / max(1, handSize)))
-                );
-                baseHeight = round(92 * self.scale);
-            else:
-                baseWidth = round(70 * self.scale);
-                baseHeight = round(98 * self.scale);
+            baseWidth, baseHeight = (66, 92) if playerNumber in (3, 4) else (70, 98);
             handWidget.setCardSize(QtCore.QSize(
-                max(1, baseWidth),
-                max(1, baseHeight)
+                max(1, round(baseWidth * self.scale)),
+                max(1, round(baseHeight * self.scale))
             ));
 
     def showActiveCards(self, players, parent):
@@ -671,14 +628,10 @@ class playArea:
 
         if healthLabel.parentWidget() is not parent:
             healthLabel.setParent(parent);
-        staminaCost = getattr(card, "energy", None);
-        healthLabel.setText(
-            f"HP {currentHealth}/{maximumHealth}"
-            + (f"\nStamina: {staminaCost}" if staminaCost is not None else "")
-        );
+        healthLabel.setText(f"HP {currentHealth}/{maximumHealth}");
         healthLabel.setFixedSize(
-            max(76, round(100 * self.scale)),
-            max(30, round(38 * self.scale))
+            max(70, round(88 * self.scale)),
+            max(20, round(24 * self.scale))
         );
         font = healthLabel.font();
         font.setPixelSize(max(8, round(12 * self.scale)));
@@ -757,7 +710,7 @@ class playArea:
 
         return player4Area;
 
-    def showHand(self, players=None):
+    def showHand(self, players=None, cardBack=None):
         if players is None:
             players = [None];
         elif hasattr(players, "hand") or hasattr(players, "cards"):
@@ -782,7 +735,9 @@ class playArea:
                 cardHand,
                 handLayout.parentWidget(),
                 rotation=rotations[playerNumber],
-                selectable=playerNumber == 1
+                selectable=playerNumber == 1,
+                reveal_cards=playerNumber == 1,
+                card_back=cardBack
             );
             handLayout.addWidget(handWidget);
             self.handWidgets[playerNumber] = handWidget;
@@ -873,11 +828,7 @@ class showPassiveCard(QtWidgets.QFrame):
             case "Support":
                 useButton = QtWidgets.QPushButton("Use");
                 self.actions.addWidget(useButton, 1);
-                useButton.clicked.connect(
-                    lambda checked=False, selectedCard=card: (
-                        self.parentWidget().playerActions.useSupportCard(selectedCard)
-                    )
-                );
+                useButton.clicked.connect(lambda: (self.parentWidget().playerActions.useSupportCard(card)));
 
         closeButton = QtWidgets.QPushButton("Close");
         closeButton.clicked.connect(self.hide);
@@ -997,7 +948,6 @@ class playerActions(QtCore.QObject):
         if not isinstance(attacker, attackCard) or self.game.currentPlayer.attacked:
             return;
         if self.game.currentPlayer.energy < attacker.energy:
-            self.scene.playAreas.flashEnergyAttribute();
             return;
 
         targets = [
@@ -1041,23 +991,14 @@ class playerActions(QtCore.QObject):
             or targetCard.currentHealth <= 0
             or attackerPlayer.energy < attacker.energy
         ):
-            if (
-                attackerPlayer is self.game.players[0]
-                and isinstance(attacker, attackCard)
-                and attackerPlayer.energy < attacker.energy
-            ):
-                self.scene.playAreas.flashEnergyAttribute();
             return;
 
         attackerPlayer.energy -= attacker.energy;
         damage = Combat.attack(attacker, targetCard);
         attackerPlayer.attacked = True;
-
         if targetCard.currentHealth <= 0:
             targetCard.currentHealth = 0;
-        
         Combat.reportAttack(attackerPlayer, attacker, targetCard, damage);
-        
         if targetCard.currentHealth == 0:
             self.game.resolveActiveCardDefeat(attackerPlayer, targetPlayer);
 
@@ -1066,7 +1007,6 @@ class playerActions(QtCore.QObject):
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         if self.scene.passiveCardPreview is not None:
             self.scene.passiveCardPreview.hide();
-        self.scene.endTurn();
 
     # Support card related use
     def useSupportCard(self, selectedCard):
@@ -1088,7 +1028,7 @@ class playerActions(QtCore.QObject):
                 f"Could not remove {selectedCard.name} from the displayed hand"
             );
 
-        currentPlayer.applySupportCard(selectedCard);
+        selectedCard.applyEffect(currentPlayer);
         self.scene.playAreas.energyLabel.setText(str(currentPlayer.getEnergy()));
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         if self.scene.passiveCardPreview is not None:
@@ -1127,7 +1067,7 @@ class handleBotTurn(QtCore.QObject):
             );
 
         currentPlayer.bot.takeTurn();
-        self.scene.playAreas.showHand(self.game.players);
+        self.scene.playAreas.showHand(self.game.players, self.scene.cardBack);
         self.scene.playAreas.handWidgets[1].cardSelected.connect(
             self.scene.showPassiveCard
         );

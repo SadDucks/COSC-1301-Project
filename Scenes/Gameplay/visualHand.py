@@ -21,10 +21,20 @@ class cardImageLabel(QtWidgets.QLabel):
 class visualHand(QtWidgets.QWidget):
 	cardSelected = QtCore.Signal(object);
 
-	def __init__(self, card_deck=None, parent=None, rotation=0, selectable=False):
+	def __init__(
+		self,
+		card_deck=None,
+		parent=None,
+		rotation=0,
+		selectable=False,
+		reveal_cards=True,
+		card_back=None
+	):
 		super().__init__(parent);
 		self.rotation = rotation;
 		self.selectable = selectable;
+		self.reveal_cards = reveal_cards;
+		self.card_back = card_back;
 
 		self.card_deck = card_deck or deck();
 		self.card_widgets = [];
@@ -54,17 +64,20 @@ class visualHand(QtWidgets.QWidget):
 
 	#Adding visual aspect of the vard
 	def addCard(self, card):
-		image_path = Path(card.image);
-		if not image_path.is_absolute():
-			image_path = Path(__file__).resolve().parents[2] / image_path;
+		if self.reveal_cards:
+			image_path = Path(card.image);
+			if not image_path.is_absolute():
+				image_path = Path(__file__).resolve().parents[2] / image_path;
+			source = QtGui.QPixmap(str(image_path));
+		else:
+			source = self.card_back
 
-		source = QtGui.QPixmap(str(image_path));
 		card_image = cardImageLabel(card) if self.selectable else QtWidgets.QLabel();
 		if self.selectable:
 			card_image.clicked.connect(self.cardSelected.emit);
 
 		card_image.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter);
-		card_image.setToolTip(card.name);
+		card_image.setToolTip(card.name if self.reveal_cards else "Card back");
 		self.updateCardSize(card_image, source);
 		self.card_sources.append((card_image, source));
 		self.layout.addWidget(card_image);

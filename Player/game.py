@@ -11,6 +11,7 @@ from Deck.deck import deck;
 from Deck import card_list;
 
 class game:
+    startingHandSize = 5;
     handSizeLimit = 8;
 
     def __init__(self, numberOfPlayers, numberOfBots=None): # Total Players and how many are Bots
@@ -48,7 +49,7 @@ class game:
         for player in self.players:
             self.deck.shuffle();
 
-            for i in range(1): # Cards per Player
+            for i in range(self.startingHandSize):
                 card = self.deck.drawCard();
                 player.hand.addCard(card);
 
