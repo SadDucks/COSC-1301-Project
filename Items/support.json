@@ -1,3 +1,26 @@
 [
-    { "id": 1, "name": "Health Potion", "image": "filepath", "healing": 50, "energy": 0}
+    { "id": 1, "name": "Din's Fire", "image": "Assets/support/Din's Fire.png", "effects": [{"effectType": "damage_boost", "amount": 6, "duration": "next_attack"}]},
+    { "id": 2, "name": "Nayru's Love", "image": "Assets/support/Nayru's Love.png", "effects": [{"effectType": "shield", "amount": 10, "duration": "next_incoming_attack"}]},
+    { "id": 3, "name": "Farore's Wind", "image": "Assets/support/Farore's Wind.png", "effects": [{"effectType": "energy", "amount": 8, "duration": "instant"}]},
+    { "id": 4, "name": "Fairy", "image": "Assets/support/Fairy.png", "effects": [{"effectType": "healing", "amount": 15, "duration": "instant"}, {"effectType": "energy", "amount": 10, "duration": "instant"}]},
+    { "id": 5, "name": "Dubious Food", "image": "Assets/support/Dubious Food.png", "effects": [{"effectType": "healing", "amount": 1, "duration": "instant"}]},
+    { "id": 6, "name": "Firece Deity Mask", "image": "Assets/support/Firece Deity Mask.png", "effects": [{"effectType": "energy", "amount": 20, "duration": "instant"}, {"effectType": "damage_boost", "amount": 5, "duration": "next_attack"}, {"effectType": "shield", "amount": 5, "duration": "next_incoming_attack"}]},
+    { "id": 7, "name": "Great Fairy's Tears", "image": "Assets/support/Great Fairy's Tears.png", "effects": [{"effectType": "healing", "amount": 15, "duration": "instant"}]},
+    { "id": 8, "name": "Lens of Truth", "image": "Assets/support/Lens of Truth.png", "effects": [{"effectType": "energy", "amount": 5, "duration": "instant"}]},
+    { "id": 9, "name": "Mighty Elixer", "image": "Assets/support/Mighty Elixer.png", "effects": [{"effectType": "energy", "amount": 8, "duration": "instant"}]},
+    { "id": 10, "name": "Paraglider", "image": "Assets/support/Paraglider.png", "effects": [{"effectType": "energy", "amount": 12, "duration": "instant"}]},
+    { "id": 11, "name": "The Blood Moon", "image": "Assets/support/The Blood Moon.png", "effects": [{"effectType": "energy", "amount": 15, "duration": "instant"}]},
+    { "id": 12, "name": "Stamia Vessel", "image": "Assets/support/Stamia Vessel.png", "effects": [{"effectType": "energy", "amount": 10, "duration": "instant"}]},
+    { "id": 13, "name": "Heart Vessel", "image": "Assets/support/Heart Vessel.png", "effects": [{"effectType": "healing", "amount": 10, "duration": "instant"}]},
+    { "id": 14, "name": "Zoanite Charge", "image": "Assets/support/Zoanite Charge.png", "effects": [{"effectType": "energy", "amount": 8, "duration": "instant"}]},
+    { "id": 15, "name": "Hearty Elixir", "image": "Assets/support/Hearty Elixir.png", "effects": [{"effectType": "healing", "amount": 8, "duration": "instant"}]},
+    { "id": 16, "name": "A Bed", "image": "Assets/support/A Bed.png", "effects": [{"effectType": "energy", "amount": 5, "duration": "instant"}]},
+    { "id": 17, "name": "The King of The Red Lions", "image": "Assets/support/The King of The Red Lions.png", "effects": [{"effectType": "damage_boost", "amount": 8, "duration": "next_attack"}]},
+    { "id": 18, "name": "Pot Lid", "image": "Assets/support/Pot Lid.png", "effects": [{"effectType": "shield", "amount": 1, "duration": "next_incoming_attack"}]},
+    { "id": 19, "name": "Engergizing Elixir", "image": "Assets/support/Energizing Elixir.png", "effects": [{"effectType": "energy", "amount": 12, "duration": "instant"}]},
+    { "id": 20, "name": "Traveler Sword", "image": "Assets/support/Traveler Sword.png", "effects": [{"effectType": "damage_boost", "amount": 1, "duration": "next_attack"}]},
+    { "id": 21, "name": "Traveler's Bow", "image": "Assets/support/Traveler's Bow.png", "effects": [{"effectType": "damage_boost", "amount": 1, "duration": "next_attack"}]},
+    { "id": 22, "name": "Rupee", "image": "Assets/support/Rupee.png", "effects": [{"effectType": "healing", "amount": 10, "duration": "instant"}]},
+    { "id": 23, "name": "Milk", "image": "Assets/support/Milk.png", "effects": [{"effectType": "healing", "amount": 5, "duration": "instant"}]},
+    { "id": 24, "name": "The Wind Waker", "image": "Assets/support/The Wind Waker.png", "effects": [{"effectType": "shield", "amount": 10, "duration": "next_incoming_attack"}]}
 ]

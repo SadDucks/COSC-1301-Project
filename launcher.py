@@ -6,7 +6,7 @@ import setproctitle;
 from PySide6 import QtWidgets;
 
 #Configuration
-setproctitle.setproctitle("COSC 1301 Project");
+setproctitle.setproctitle("Chronicles of the Triforce");
 from config import Config;
 
 #Load saved configuration
@@ -19,7 +19,7 @@ from Scenes import menu as menu;
 
 #Opening Application
 app = QtWidgets.QApplication(sys.argv);
-window = windowManager.mainWindow("COSC 1301 Project", menu.mainMenu, config);
+window = windowManager.mainWindow("Chronicles of the Triforce", menu.mainMenu, config);
 window.show();
 
 #Terminate process cleanly once event loop (GUI) ends
