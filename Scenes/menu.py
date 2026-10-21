@@ -40,11 +40,17 @@ class mainMenu(QtWidgets.QWidget):
         title.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignHCenter);
         title.show();
 
-        #Play Button
+        #Single Player Button
         singlePlayer = AnimatedButton("Single Player", buttonStyle);
         singlePlayer.setObjectName("singlePlayer");
         singlePlayer.clicked.connect(self.startGame);
         singlePlayer.show();
+
+        #Multiplayer Button
+        multiPlayer = AnimatedButton("Multiplayer", buttonStyle);
+        multiPlayer.setObjectName("multiPlayer");
+        multiPlayer.clicked.connect(self.startMultiplayer);
+        multiPlayer.show();
 
         #Settings Button
         settings = AnimatedButton("Settings", buttonStyle);
@@ -66,6 +72,7 @@ class mainMenu(QtWidgets.QWidget):
 
         #Adding buttons to layout
         layout.addWidget(singlePlayer);
+        layout.addWidget(multiPlayer);
         layout.addWidget(settings);
         layout.addWidget(quit);
 
@@ -79,6 +86,13 @@ class mainMenu(QtWidgets.QWidget):
         else:
             print("No change window found");
 
+    def startMultiplayer(self):
+        if self.windowRef is not None:
+            from Scenes.Gameplay import multiPlayer;
+            self.windowRef.changeScene(multiPlayer.multiplayerSetup);
+        else:
+            print("No change window found");
+
     #Settings button functionality
     def openSettings(self):
         self.settingsOverlay = settingsOverlayMenu(self, self.audioOutput, self.config);
@@ -86,15 +100,6 @@ class mainMenu(QtWidgets.QWidget):
         self.settingsOverlay.setGeometry(self.rect());
         self.settingsOverlay.raise_();
         self.settingsOverlay.show();
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key.Key_Escape:
-            if self.settingsStatus == True:
-                self.settingsOverlay.close();
-            else:
-                self.openSettings();
-        else:
-            super().keyPressEvent(event);
 
     #Quit function
     def quitGame(self):
