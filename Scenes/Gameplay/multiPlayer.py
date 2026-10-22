@@ -1539,11 +1539,17 @@ class playArea:
         self.handWidgets = {};
         self.activeCardLabels = {};
         self.activeCardHealthLabels = {};
+        self.activeCardStaminaLabels = self.activeCardHealthLabels;
         self.localPlayerIndex = 0;
         self.screenSeatOrder = (1, 4, 2, 3);
         self.scale = 1.0;
         self.energyFrame = None;
         self.energyLabel = None;
+        self.staminaBlinkTimer = QtCore.QTimer();
+        self.staminaBlinkTimer.setInterval(150);
+        self.staminaBlinkTimer.timeout.connect(self._updateStaminaBlink);
+        self.staminaBlinkLabel = None;
+        self.staminaBlinkCount = 0;
 
     #creates the frame for the play area & resize function
     def createFrame(self, width, height, playerNumber):
@@ -1575,6 +1581,7 @@ class playArea:
         healthLabel.hide();
 
         self.activeCardHealthLabels[playerNumber] = healthLabel;
+
         self.playerAreaFrames[playerNumber] = rect;
         self.playerHandLayouts[playerNumber] = frameLayout;
         self.playerFrames.append((rect, width, height));
@@ -1600,8 +1607,15 @@ class playArea:
                 max(1, round(64 * scale))
             );
             borderWidth = max(1, round(3 * scale));
+            backgroundColor = (
+                "#c00000"
+                if self.staminaBlinkTimer.isActive()
+                and self.staminaBlinkCount % 2 == 0
+                else "#23408E"
+            );
             self.energyFrame.setStyleSheet(
-                f"QFrame {{ background-color: #23408E; border: {borderWidth}px solid black; }}"
+                f"QFrame {{ background-color: {backgroundColor}; "
+                f"border: {borderWidth}px solid black; }}"
             );
             self.energyLabel.setStyleSheet("QLabel { color: white; border: none; }");
             font = self.energyLabel.font();
@@ -1638,6 +1652,9 @@ class playArea:
                 activeCardLabel.clear();
                 activeCardLabel.hide();
                 healthLabel.hide();
+                if self.staminaBlinkLabel is healthLabel:
+                    self.staminaBlinkTimer.stop();
+                    self.staminaBlinkLabel = None;
                 if playerIndex == localPlayerIndex:
                     parent.activeCard = None;
                     parent.activeCardSource = QtGui.QPixmap();
@@ -1657,6 +1674,7 @@ class playArea:
                     cardPosition,
                     parent.activeCardLabel.size(),
                     screenSlot,
+                    player.energy,
                     parent
                 );
                 continue;
@@ -1728,10 +1746,11 @@ class playArea:
                 position,
                 activeCardLabel.size(),
                 screenSlot,
+                player.energy,
                 parent
             );
 
-    def showActiveCardHealth(self, healthLabel, card, cardPosition, cardSize, playerNumber, parent):
+    def showActiveCardHealth(self, healthLabel, card, cardPosition, cardSize, playerNumber, currentEnergy, parent):
 
         currentHealth = getattr(card, "currentHealth", None);
         maximumHealth = getattr(card, "health", None);
@@ -1741,14 +1760,21 @@ class playArea:
 
         if healthLabel.parentWidget() is not parent:
             healthLabel.setParent(parent);
-        healthLabel.setText(f"HP {currentHealth}/{maximumHealth}");
+        healthLabel.healthText = f"HP {currentHealth}/{maximumHealth}";
+        healthLabel.energyCost = card.energy;
+        healthLabel.energyUsable = currentEnergy >= card.energy;
         healthLabel.setFixedSize(
             max(70, round(88 * self.scale)),
-            max(20, round(24 * self.scale))
+            max(34, round(40 * self.scale))
         );
         font = healthLabel.font();
         font.setPixelSize(max(8, round(12 * self.scale)));
         healthLabel.setFont(font);
+        self._setStaminaStyle(
+            healthLabel,
+            self.staminaBlinkLabel is healthLabel
+            and self.staminaBlinkCount % 2 == 0
+        );
 
         if playerNumber in (1, 2):
             position = QtCore.QPoint(
@@ -1763,6 +1789,69 @@ class playArea:
         healthLabel.move(position);
         healthLabel.show();
         healthLabel.raise_();
+
+    def _setStaminaStyle(self, label, alert):
+        if alert:
+            energyColor = "#ff3030";
+        elif label.energyUsable:
+            energyColor = "#42e66c";
+        else:
+            energyColor = "#ffe066";
+        statusColor = "#42e66c" if label.energyUsable else "#ffe066";
+        label.setStyleSheet(
+            f"QLabel {{ color: {statusColor}; "
+            "background-color: rgba(0, 0, 0, 190); "
+            f"border: 1px solid {statusColor}; border-radius: 4px; padding: 2px; "
+            "font-weight: bold; }"
+        );
+        label.setText(
+            f'{label.healthText}<br>Energy: '
+            f'<span style="color: {energyColor};">{label.energyCost}</span>'
+        );
+        label.setToolTip(
+            f'{label.healthText} | Energy cost: {label.energyCost}'
+        );
+
+    def flashInsufficientStamina(self, playerIndex):
+        screenSlot = self._screenSlot(playerIndex);
+        label = self.activeCardStaminaLabels.get(screenSlot);
+        if label is None or label.isHidden():
+            return;
+        self.staminaBlinkTimer.stop();
+        self.staminaBlinkLabel = label;
+        self.staminaBlinkCount = 8;
+        self._setStaminaStyle(label, True);
+        self._setEnergyBlink(True);
+        self.staminaBlinkTimer.start();
+
+    def _updateStaminaBlink(self):
+        label = self.staminaBlinkLabel;
+        if label is None and self.energyFrame is None:
+            self.staminaBlinkTimer.stop();
+            return;
+        self.staminaBlinkCount -= 1;
+        done = self.staminaBlinkCount <= 0 or (
+            label is not None and label.isHidden()
+        );
+        alert = not done and self.staminaBlinkCount % 2 == 0;
+        if label is not None:
+            self._setStaminaStyle(label, alert);
+        self._setEnergyBlink(alert);
+        if done:
+            self.staminaBlinkLabel = None;
+            self.staminaBlinkTimer.stop();
+
+    def _setEnergyBlink(self, alert):
+        if self.energyFrame is None:
+            return;
+        borderWidth = max(1, round(3 * self.scale));
+        backgroundColor = "#c00000" if alert else "#23408E";
+        borderColor = "#ff4d4d" if alert else "black";
+        self.energyFrame.setStyleSheet(
+            f"QFrame {{ background-color: {backgroundColor}; "
+            f"border: {borderWidth}px solid {borderColor}; }}"
+        );
+        self.energyLabel.setStyleSheet("QLabel { color: white; border: none; }");
 
     def setAttackTargets(self, players, enabled, localPlayerIndex=0):
             self.localPlayerIndex = localPlayerIndex;
@@ -2077,6 +2166,7 @@ class playerActions(QtCore.QObject):
         if not isinstance(attacker, attackCard) or self.game.currentPlayer.attacked:
             return;
         if self.game.currentPlayer.energy < attacker.energy:
+            self.scene.playAreas.flashInsufficientStamina(self.scene.localPlayerIndex);
             return;
 
         targets = [
