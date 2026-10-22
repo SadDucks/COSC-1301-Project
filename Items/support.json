@@ -17,7 +17,7 @@
     { "id": 16, "name": "A Bed", "image": "Assets/support/A Bed.png", "effects": [{"effectType": "energy", "amount": 5, "duration": "instant"}]},
     { "id": 17, "name": "The King of The Red Lions", "image": "Assets/support/The King of The Red Lions.png", "effects": [{"effectType": "damage_boost", "amount": 8, "duration": "next_attack"}]},
     { "id": 18, "name": "Pot Lid", "image": "Assets/support/Pot Lid.png", "effects": [{"effectType": "shield", "amount": 1, "duration": "next_incoming_attack"}]},
-    { "id": 19, "name": "Engergizing Elixir", "image": "Assets/support/Energizing Elixir.png", "effects": [{"effectType": "energy", "amount": 12, "duration": "instant"}]},
+    { "id": 19, "name": "Energizing Elixir", "image": "Assets/support/Engergizing Elixir.png", "effects": [{"effectType": "energy", "amount": 12, "duration": "instant"}]},
     { "id": 20, "name": "Traveler Sword", "image": "Assets/support/Traveler Sword.png", "effects": [{"effectType": "damage_boost", "amount": 1, "duration": "next_attack"}]},
     { "id": 21, "name": "Traveler's Bow", "image": "Assets/support/Traveler's Bow.png", "effects": [{"effectType": "damage_boost", "amount": 1, "duration": "next_attack"}]},
     { "id": 22, "name": "Rupee", "image": "Assets/support/Rupee.png", "effects": [{"effectType": "healing", "amount": 10, "duration": "instant"}]},
