@@ -59,4 +59,7 @@ class Client(QtCore.QObject):
 
 	def close(self):
 		print(f"[LAN client] Closing connection to {self.host}:{self.port}")
+		self.socket.connected.disconnect()
+		self.socket.readyRead.disconnect()
+		self.socket.disconnected.disconnect()
 		self.socket.abort()

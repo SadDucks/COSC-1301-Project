@@ -80,7 +80,16 @@ class Host(QtCore.QObject):
 
 	def send(self, message, client=None):
 		payload = json.dumps(message).encode("utf-8") + b"\n"
-		recipients = [client] if client is not None else list(self.clients)
+		if client is None:
+			recipients = list(self.clients)
+		elif client in self.clients:
+			recipients = [client]
+		else:
+			recipients = [
+				client_socket
+				for client_socket, address in self.clients.items()
+				if address == client
+			]
 		sent = 0
 		
 		for recipient in recipients:
@@ -93,6 +102,8 @@ class Host(QtCore.QObject):
 		self.server.close()
 		
 		for client in list(self.clients):
+			client.readyRead.disconnect()
+			client.disconnected.disconnect()
 			client.abort()
 			
 		self.clients.clear()
