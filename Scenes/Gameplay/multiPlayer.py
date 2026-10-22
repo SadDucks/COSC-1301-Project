@@ -986,6 +986,15 @@ class gameplayScene(QtWidgets.QWidget):
         self.playerActions.cancelAttackSelection();
         if self.passiveCardPreview is not None:
             self.passiveCardPreview.hide();
+        localActiveCard = self.game.players[self.localPlayerIndex].activeCard;
+        if localActiveCard is None:
+            self.activeCard = None;
+            self.activeCardSource = QtGui.QPixmap();
+            self.activeCardLabel.card = None;
+            self.activeCardLabel.clear();
+            self.activeCardLabel.hide();
+        else:
+            self.showActiveCard(localActiveCard);
         self.playAreas.showHand(
             self.game.players, self.cardBack, self.localPlayerIndex
         );
@@ -1556,7 +1565,7 @@ class playArea:
                     QtCore.Qt.AspectRatioMode.KeepAspectRatio,
                     QtCore.Qt.TransformationMode.SmoothTransformation
                 );
-                rotation = {2: 180, 3: 90, 4: 270}[playerNumber];
+                rotation = {2: 180, 3: 90, 4: 270}.get(playerNumber, 0);
                 if rotation:
                     pixmap = pixmap.transformed(
                         QtGui.QTransform().rotate(rotation),
