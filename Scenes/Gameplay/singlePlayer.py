@@ -1117,7 +1117,7 @@ class playerActions(QtCore.QObject):
                 f"Could not remove {selectedCard.name} from the displayed hand"
             );
 
-        selectedCard.applyEffect(currentPlayer);
+        currentPlayer.applySupportCard(selectedCard);
         self.scene.playAreas.energyLabel.setText(str(currentPlayer.getEnergy()));
         self.scene.playAreas.showActiveCards(self.game.players, self.scene);
         if self.scene.passiveCardPreview is not None:
