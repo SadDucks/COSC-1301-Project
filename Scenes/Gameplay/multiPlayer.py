@@ -113,6 +113,20 @@ class multiplayerSetup(QtWidgets.QWidget):
         self.joinNetworkInfo.setWordWrap(True);
         layout.addWidget(self.joinNetworkInfo);
 
+        directJoin = QtWidgets.QHBoxLayout();
+        self.hostAddressInput = QtWidgets.QLineEdit();
+        self.hostAddressInput.setPlaceholderText("Host IP address or computer name");
+        directJoin.addWidget(self.hostAddressInput, 1);
+        self.hostPortInput = QtWidgets.QSpinBox();
+        self.hostPortInput.setRange(1, 65535);
+        self.hostPortInput.setValue(55555);
+        self.hostPortInput.setPrefix("Port ");
+        directJoin.addWidget(self.hostPortInput);
+        directJoinButton = QtWidgets.QPushButton("Join by Address");
+        directJoinButton.clicked.connect(self._joinByAddress);
+        directJoin.addWidget(directJoinButton);
+        layout.addLayout(directJoin);
+
         self.gameList = QtWidgets.QListWidget();
         self.gameList.itemDoubleClicked.connect(self._joinSelectedGame);
         layout.addWidget(self.gameList, 1);
@@ -224,6 +238,41 @@ class multiplayerSetup(QtWidgets.QWidget):
             return "No active non-loopback IPv4 network found.";
         return "Network Details: " + " | ".join(networks);
 
+    @staticmethod
+    def _getBroadcastAddresses():
+        broadcasts = set();
+        requiredFlags = (
+            QtNetwork.QNetworkInterface.InterfaceFlag.IsUp
+            | QtNetwork.QNetworkInterface.InterfaceFlag.IsRunning
+        );
+        for interface in QtNetwork.QNetworkInterface.allInterfaces():
+            flags = interface.flags();
+            if (
+                flags & requiredFlags != requiredFlags
+                or flags & QtNetwork.QNetworkInterface.InterfaceFlag.IsLoopBack
+            ):
+                continue;
+            for entry in interface.addressEntries():
+                address = entry.ip();
+                netmask = entry.netmask();
+                if (
+                    address.protocol()
+                    != QtNetwork.QAbstractSocket.NetworkLayerProtocol.IPv4Protocol
+                    or netmask.protocol()
+                    != QtNetwork.QAbstractSocket.NetworkLayerProtocol.IPv4Protocol
+                ):
+                    continue;
+                ipAddress = ipaddress.IPv4Address(address.toIPv4Address());
+                if ipAddress.is_loopback or ipAddress.is_link_local:
+                    continue;
+                network = ipaddress.IPv4Network(
+                    f"{ipAddress}/{netmask.toString()}",
+                    strict=False,
+                );
+                if network.prefixlen < 31:
+                    broadcasts.add(str(network.broadcast_address));
+        return sorted(broadcasts);
+
     def _startHosting(self):
         print("[LAN lobby] Starting host setup")
         self._closeSession();
@@ -295,17 +344,28 @@ class multiplayerSetup(QtWidgets.QWidget):
 
         print("[LAN lobby] Broadcasting LAN game discovery request")
         request = json.dumps({"type": "discover"}).encode("utf-8");
-        result = self.discoverySocket.writeDatagram(
-            request,
-            QtNetwork.QHostAddress(
-                QtNetwork.QHostAddress.SpecialAddress.Broadcast
-            ),
-            self.discoveryPort,
-        );
-        if result < 0:
-            print(f"[LAN lobby] LAN discovery request failed: {self.discoverySocket.errorString()}");
+        destinations = {
+            "255.255.255.255",
+            *self._getBroadcastAddresses(),
+        };
+        failures = [];
+        for destination in sorted(destinations):
+            result = self.discoverySocket.writeDatagram(
+                request,
+                QtNetwork.QHostAddress(destination),
+                self.discoveryPort,
+            );
+            if result < 0:
+                failures.append(
+                    f"{destination}: {self.discoverySocket.errorString()}"
+                );
+        if failures:
+            for failure in failures:
+                print(f"[LAN lobby] LAN discovery request failed: {failure}");
+        if len(failures) == len(destinations):
             self.joinStatus.setText(
-                f"LAN search failed: {self.discoverySocket.errorString()}"
+                "LAN discovery could not send broadcasts. You can still join "
+                "by entering the host's IP address and port below."
             );
 
     def _announceGame(self, address=None, port=None):
@@ -318,22 +378,42 @@ class multiplayerSetup(QtWidgets.QWidget):
             "name": QtNetwork.QHostInfo.localHostName(),
             "port": self.hostServer.port,
         }).encode("utf-8");
-        destination = address or QtNetwork.QHostAddress(
-            QtNetwork.QHostAddress.SpecialAddress.Broadcast
-        );
-        destinationPort = port or self.discoveryPort;
-        result = self.discoverySocket.writeDatagram(
-            advertisement, destination, destinationPort
-        );
-        if result < 0:
-            print(f"[LAN lobby] Game advertisement failed: {self.discoverySocket.errorString()}");
-            self.hostStatus.setText(
-                f"LAN advertisement failed: {self.discoverySocket.errorString()}"
-            );
+        if address is not None:
+            destinations = [(address, port or self.discoveryPort)];
         else:
+            destinations = [
+                (QtNetwork.QHostAddress(destination), self.discoveryPort)
+                for destination in sorted({
+                    "255.255.255.255",
+                    *self._getBroadcastAddresses(),
+                })
+            ];
+        sent = 0;
+        for destination, destinationPort in destinations:
+            result = self.discoverySocket.writeDatagram(
+                advertisement, destination, destinationPort
+            );
+            if result < 0:
+                print(
+                    f"[LAN lobby] Game advertisement to "
+                    f"{destination.toString()}:{destinationPort} failed: "
+                    f"{self.discoverySocket.errorString()}"
+                );
+            else:
+                sent += 1;
+                print(
+                    f"[LAN lobby] Advertised game {self.sessionId} to "
+                    f"{destination.toString()}:{destinationPort}"
+                );
+        if sent == 0:
+            self.hostStatus.setText(
+                "Automatic discovery is unavailable. Share the host IP and "
+                "TCP port shown above; clients can join by address."
+            );
+        elif address is None:
             print(
-                f"[LAN lobby] Advertised game {self.sessionId} to "
-                f"{destination.toString()}:{destinationPort}"
+                f"[LAN lobby] Game {self.sessionId} announced on "
+                f"{sent} broadcast destination(s)"
             );
 
     def _readDiscoveryPackets(self):
@@ -367,12 +447,16 @@ class multiplayerSetup(QtWidgets.QWidget):
                 ):
                     continue;
                 hostAddress = datagram.senderAddress().toString();
-                self.games[sessionId] = {
-                    "host": hostAddress,
-                    "port": port,
-                    "name": name,
-                    "lastSeen": time.monotonic(),
-                };
+                found = self.games.get(sessionId);
+                if found is None:
+                    self.games[sessionId] = {
+                        "host": hostAddress,
+                        "port": port,
+                        "name": name,
+                        "lastSeen": time.monotonic(),
+                    };
+                else:
+                    found["lastSeen"] = time.monotonic();
                 print(
                     f"[LAN lobby] Discovered game {name} at "
                     f"{hostAddress}:{port} (session {sessionId})"
@@ -424,14 +508,34 @@ class multiplayerSetup(QtWidgets.QWidget):
 
         self.sessionId = sessionId;
 
-        print(
-            f"[LAN lobby] Joining {found['name']} at "
-            f"{found['host']}:{found['port']}"
-        );
-        self.refreshTimer.stop();
-        self.client = Client(
+        self._connectToGame(
             found["host"],
             found["port"],
+            sessionId,
+            found["name"],
+        );
+
+    def _joinByAddress(self):
+        host = self.hostAddressInput.text().strip();
+        if not host:
+            self.joinStatus.setText("Enter the host's IP address or computer name.");
+            return;
+        self._connectToGame(
+            host,
+            self.hostPortInput.value(),
+            None,
+            host,
+        );
+
+    def _connectToGame(self, host, port, sessionId, name):
+        if self.client is not None:
+            return;
+        self.sessionId = sessionId;
+        print(f"[LAN lobby] Joining {name} at {host}:{port}");
+        self.refreshTimer.stop();
+        self.client = Client(
+            host,
+            port,
             on_disconnect=self._clientDisconnected,
             parent=self,
         );
@@ -439,7 +543,7 @@ class multiplayerSetup(QtWidgets.QWidget):
         self.client.connected.connect(self._clientConnected);
         self.client.messageReceived.connect(self._handleClientMessage);
         self.client.socket.errorOccurred.connect(self._clientError);
-        self.joinStatus.setText(f'Connecting to {found["name"]}...');
+        self.joinStatus.setText(f"Connecting to {name}...");
         self.connectionTimeout.start();
         self.client.connect();
 
@@ -548,8 +652,13 @@ class multiplayerSetup(QtWidgets.QWidget):
         if not isinstance(message, dict):
             return;
         if message.get("type") == "joined":
-            if message.get("session_id") != self.sessionId:
+            receivedSessionId = message.get("session_id");
+            if (
+                not isinstance(receivedSessionId, str)
+                or (self.sessionId is not None and receivedSessionId != self.sessionId)
+            ):
                 return;
+            self.sessionId = receivedSessionId;
             seat = message.get("seat");
             if not isinstance(seat, int) or not 1 <= seat <= 3:
                 return;
@@ -871,6 +980,10 @@ class gameplayScene(QtWidgets.QWidget):
 
         self.setLayout(self.playerLayout);
         self.playAreas.resize(self.size());
+
+        localActiveCard = self.game.players[self.localPlayerIndex].activeCard;
+        if localActiveCard is not None:
+            self.showActiveCard(localActiveCard);
 
         self.playAreas.showHand(
             self.game.players, self.cardBack, self.localPlayerIndex
@@ -1426,6 +1539,8 @@ class playArea:
         self.handWidgets = {};
         self.activeCardLabels = {};
         self.activeCardHealthLabels = {};
+        self.localPlayerIndex = 0;
+        self.screenSeatOrder = (1, 4, 2, 3);
         self.scale = 1.0;
         self.energyFrame = None;
         self.energyLabel = None;
@@ -1495,26 +1610,35 @@ class playArea:
 
     def resizeHands(self):
         for playerNumber, handWidget in self.handWidgets.items():
-            baseWidth, baseHeight = (66, 92) if playerNumber in (3, 4) else (70, 98);
+            screenSlot = self._screenSlot(playerNumber - 1);
+            baseWidth, baseHeight = (66, 92) if screenSlot in (3, 4) else (70, 98);
             handWidget.setCardSize(QtCore.QSize(
                 max(1, round(baseWidth * self.scale)),
                 max(1, round(baseHeight * self.scale))
             ));
 
+    def _screenSlot(self, playerIndex, localPlayerIndex=None):
+        if localPlayerIndex is None:
+            localPlayerIndex = self.localPlayerIndex;
+        relativeSeat = (playerIndex - localPlayerIndex) % 4;
+        return self.screenSeatOrder[relativeSeat];
+
     def showActiveCards(self, players, parent, localPlayerIndex=0):
-        for playerNumber, player in enumerate(players, start=1):
-            activeCardLabel = self.activeCardLabels.get(playerNumber);
+        self.localPlayerIndex = localPlayerIndex;
+        for playerIndex, player in enumerate(players):
+            screenSlot = self._screenSlot(playerIndex, localPlayerIndex);
+            activeCardLabel = self.activeCardLabels.get(screenSlot);
             if activeCardLabel is None:
                 continue;
 
-            frame = self.playerAreaFrames[playerNumber];
+            frame = self.playerAreaFrames[screenSlot];
             card = player.activeCard;
-            healthLabel = self.activeCardHealthLabels[playerNumber];
+            healthLabel = self.activeCardHealthLabels[screenSlot];
             if card is None:
                 activeCardLabel.clear();
                 activeCardLabel.hide();
                 healthLabel.hide();
-                if playerNumber == localPlayerIndex + 1:
+                if playerIndex == localPlayerIndex:
                     parent.activeCard = None;
                     parent.activeCardSource = QtGui.QPixmap();
                     parent.activeCardLabel.card = None;
@@ -1522,7 +1646,7 @@ class playArea:
                     parent.activeCardLabel.hide();
                 continue;
 
-            if playerNumber == localPlayerIndex + 1:
+            if playerIndex == localPlayerIndex:
                 activeCardLabel.hide();
                 cardPosition = parent.activeCardLabel.mapTo(
                     parent, QtCore.QPoint(0, 0)
@@ -1532,7 +1656,7 @@ class playArea:
                     card,
                     cardPosition,
                     parent.activeCardLabel.size(),
-                    playerNumber,
+                    screenSlot,
                     parent
                 );
                 continue;
@@ -1565,7 +1689,7 @@ class playArea:
                     QtCore.Qt.AspectRatioMode.KeepAspectRatio,
                     QtCore.Qt.TransformationMode.SmoothTransformation
                 );
-                rotation = {2: 180, 3: 90, 4: 270}.get(playerNumber, 0);
+                rotation = {2: 180, 3: 90, 4: 270}.get(screenSlot, 0);
                 if rotation:
                     pixmap = pixmap.transformed(
                         QtGui.QTransform().rotate(rotation),
@@ -1579,12 +1703,12 @@ class playArea:
             labelHeight = activeCardLabel.height();
             frameCenterX = framePosition.x() + frame.width() // 2;
             frameCenterY = framePosition.y() + frame.height() // 2;
-            if playerNumber == 2:
+            if screenSlot == 2:
                 position = QtCore.QPoint(
                     frameCenterX - labelWidth // 2,
                     framePosition.y() + frame.height() + 8
                 );
-            elif playerNumber == 3:
+            elif screenSlot == 3:
                 position = QtCore.QPoint(
                     framePosition.x() + frame.width() + 8,
                     frameCenterY - labelHeight // 2
@@ -1603,7 +1727,7 @@ class playArea:
                 card,
                 position,
                 activeCardLabel.size(),
-                playerNumber,
+                screenSlot,
                 parent
             );
 
@@ -1641,14 +1765,16 @@ class playArea:
         healthLabel.raise_();
 
     def setAttackTargets(self, players, enabled, localPlayerIndex=0):
-            for playerNumber, player in enumerate(players, start=1):
-                activeCardLabel = self.activeCardLabels.get(playerNumber);
+            self.localPlayerIndex = localPlayerIndex;
+            for playerIndex, player in enumerate(players):
+                screenSlot = self._screenSlot(playerIndex, localPlayerIndex);
+                activeCardLabel = self.activeCardLabels.get(screenSlot);
                 if activeCardLabel is None or activeCardLabel.isHidden():
                     continue;
 
                 isAttackTarget = (
                     enabled
-                    and playerNumber != localPlayerIndex + 1
+                    and playerIndex != localPlayerIndex
                     and player.activeCard is not None
                     and player.activeCard.currentHealth > 0
                 );
@@ -1706,6 +1832,7 @@ class playArea:
             players = [players];
         else:
             players = list(players);
+        self.localPlayerIndex = localPlayerIndex;
 
         for playerNumber, handLayout in self.playerHandLayouts.items():
             handWidget = self.handWidgets.pop(playerNumber, None);
@@ -1714,8 +1841,10 @@ class playArea:
                 handWidget.deleteLater();
 
         rotations = {1: 0, 2: 180, 3: 90, 4: 270};
-        for playerNumber, player in enumerate(players, start=1):
-            handLayout = self.playerHandLayouts.get(playerNumber);
+        for playerIndex, player in enumerate(players):
+            playerNumber = playerIndex + 1;
+            screenSlot = self._screenSlot(playerIndex, localPlayerIndex);
+            handLayout = self.playerHandLayouts.get(screenSlot);
             if handLayout is None:
                 break;
 
@@ -1723,9 +1852,9 @@ class playArea:
             handWidget = visualHand.visualHand(
                 cardHand,
                 handLayout.parentWidget(),
-                rotation=rotations[playerNumber],
-                selectable=playerNumber == localPlayerIndex + 1,
-                reveal_cards=playerNumber == localPlayerIndex + 1,
+                rotation=rotations[screenSlot],
+                selectable=playerIndex == localPlayerIndex,
+                reveal_cards=playerIndex == localPlayerIndex,
                 card_back=cardBack
             );
             handLayout.addWidget(handWidget);
